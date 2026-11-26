@@ -1,0 +1,1245 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Sari's Phone">
+<title>Sari's Phone</title>
+<style>
+:root{
+  --fs:21px;
+  --blue:#0a6fe0; --blue2:#007aff; --green:#1f9e45; --green2:#34c759; --red:#d92d20; --orange:#c25e00;
+  --bg:#f2f2f7; --card:#fff; --ink:#111; --sec:#5f5f66; --line:#d8d8de; --fill:#e9e9ee;
+  --sbh:calc(46px + env(safe-area-inset-top));
+  --sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+html{font-size:var(--fs);height:100%}
+body{margin:0;height:100%;font-family:var(--sys);color:var(--ink);background:#0d0d10;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  -webkit-text-size-adjust:100%;text-size-adjust:100%}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer;touch-action:manipulation}
+button:focus-visible{outline:3px solid #ffbf00;outline-offset:2px}
+button[disabled]{cursor:default}
+
+/* ---------- device ---------- */
+#device{position:fixed;inset:0;background:#000;overflow:hidden}
+#screen{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;background:#000}
+.island{display:none}
+@media (min-width:600px) and (min-height:720px){
+  body{background:radial-gradient(circle at 30% 20%,#2c2c34,#0b0b0e 70%)}
+  #device{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    height:min(900px,calc(100dvh - 48px));width:min(440px,calc((min(900px,100dvh - 48px))*0.47));
+    border-radius:58px;box-shadow:0 0 0 12px #1c1c1e,0 0 0 14px #48484a,0 40px 90px rgba(0,0,0,.6)}
+  #screen{border-radius:58px}
+  .island{display:block;position:absolute;top:11px;left:50%;transform:translateX(-50%);width:118px;height:34px;border-radius:20px;background:#000;z-index:60}
+}
+
+/* ---------- status bar ---------- */
+#status{position:absolute;top:0;left:0;right:0;height:var(--sbh);padding:env(safe-area-inset-top) 18px 0 26px;display:flex;align-items:center;
+  font:600 17px/1 var(--sys);color:#fff;position:relative;z-index:50;background:transparent;letter-spacing:.2px}
+#screen.light #status{color:#000}
+#status .time{min-width:54px}
+#status .gap{flex:1}
+#status .ic{display:flex;gap:6px;align-items:center}
+#status svg{display:block}
+#fsbtn{width:40px;height:40px;margin-left:6px;margin-right:-8px;display:grid;place-items:center;border-radius:12px}
+#fsbtn:active{background:rgba(127,127,127,.25)}
+#homebar{position:absolute;left:50%;bottom:calc(6px + env(safe-area-inset-bottom)/2);transform:translateX(-50%);width:36%;height:5px;border-radius:3px;background:#fff;z-index:55;opacity:.9;pointer-events:none}
+#screen.light #homebar{background:#000;opacity:.85}
+
+#view{position:absolute;inset:0}
+.page{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg);padding-top:var(--sbh);--top:#f9f9fb}
+.page::before{content:"";position:absolute;left:0;right:0;top:0;height:var(--sbh);background:var(--top);pointer-events:none}
+.wall,.lock,.home,.pad,.call,.final{--top:transparent}
+.incall{--top:#3a4b5e}.viewer,.clockp{--top:#000}.payday{--top:#0f3d2e}.wordup{--top:#e8533f}.rost{--top:#4b3ab8}.crew{--top:#075e54}.set{--top:#f2f2f7}
+.body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:28px}
+
+/* wallpaper */
+.wall{background:
+  radial-gradient(120% 60% at 80% 0%,rgba(255,170,90,.55),transparent 60%),
+  radial-gradient(90% 60% at 0% 100%,rgba(40,120,255,.55),transparent 60%),
+  linear-gradient(170deg,#1b1f4b 0%,#4b2a6e 45%,#d1607a 78%,#f3a66b 100%)}
+.wall::after{content:"";position:absolute;left:0;right:0;bottom:0;height:22%;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 100' preserveAspectRatio='none'%3E%3Cpath d='M0 100V70h20v-8h14v8h10V55h12v15h18V64c30-40 60-40 90 0v6h10l8-22 6 22 9-30 7 30 10-18 5 18h22V60h16v10h18V50h14v20h20v-6h12v6h26V58h14v42z' fill='%23140b25' opacity='.55'/%3E%3C/svg%3E") bottom/100% 100% no-repeat;pointer-events:none}
+
+/* ---------- lock screen ---------- */
+.lock{color:#fff;text-align:center;align-items:center;padding-left:18px;padding-right:18px}
+.lock .ldate{font-weight:600;font-size:1.05rem;margin-top:12px;opacity:.95}
+.lock .ltime{font-weight:700;font-size:clamp(64px,22vw,96px);line-height:1;letter-spacing:-2px;margin:4px 0 18px;font-variant-numeric:tabular-nums}
+.lock .nlist{width:100%;max-width:420px;display:flex;flex-direction:column;gap:10px;z-index:2}
+.ncard{display:flex;gap:12px;text-align:left;align-items:flex-start;background:rgba(255,255,255,.28);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-radius:20px;padding:12px 14px;color:#fff}
+.ncard .ni{flex:none;width:38px;height:38px;border-radius:10px;overflow:hidden}
+.ncard .nt{display:flex;justify-content:space-between;gap:8px;font-weight:700;font-size:.82rem}
+.ncard .nt span{font-weight:500;opacity:.85}
+.ncard .nb{font-size:.86rem;line-height:1.3;margin-top:2px}
+.lock .found{margin-top:auto;margin-bottom:16px;font-size:.8rem;opacity:.95;background:rgba(0,0,0,.28);border-radius:14px;padding:8px 14px;z-index:2}
+.lock .open{z-index:2;margin-bottom:calc(30px + env(safe-area-inset-bottom));font-weight:600;font-size:.9rem;padding:12px 26px;border-radius:30px;background:rgba(255,255,255,.22);color:#fff;min-height:48px}
+.lock .torch{position:absolute;bottom:calc(36px + env(safe-area-inset-bottom));width:50px;height:50px;border-radius:50%;background:rgba(0,0,0,.3);display:grid;place-items:center;z-index:2}
+.lock .torch.l{left:30px}.lock .torch.r{right:30px}
+@media (max-height:520px){.lock .ltime{font-size:56px;margin:0 0 8px}.lock .torch{display:none}.lock .nlist{flex-direction:row;max-width:none}.lock .nlist .ncard{flex:1}}
+
+/* passcode + teacher keypad */
+.pad{color:#fff;align-items:center;justify-content:center;padding-left:20px;padding-right:20px;padding-bottom:30px;text-align:center;gap:6px;background:rgba(10,10,30,.55);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px)}
+.pad.solid{background:linear-gradient(180deg,#1c1c2e,#2a2140)}
+.pad h2{font-weight:600;font-size:1.05rem;margin:0}
+.pad .psub{font-size:.8rem;opacity:.9;max-width:320px;line-height:1.35}
+.dots{display:flex;gap:18px;margin:14px 0 16px}
+.dots i{width:14px;height:14px;border-radius:50%;border:1.6px solid #fff}
+.dots i.on{background:#fff}
+.dots.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+.keys{display:grid;grid-template-columns:repeat(3,auto);gap:14px 26px}
+.key{width:clamp(64px,19vw,78px);height:clamp(64px,19vw,78px);border-radius:50%;background:rgba(255,255,255,.2);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:32px;font-weight:400;line-height:1}
+.key small{font-size:10px;letter-spacing:2px;font-weight:600;margin-top:2px}
+.key:active{background:rgba(255,255,255,.5)}
+.key.ghost{background:none;font-size:17px}
+.pad .links{display:flex;justify-content:space-between;width:100%;max-width:330px;margin-top:12px}
+.pad .links button{color:#fff;font-size:.85rem;padding:12px 6px;min-height:44px}
+@media (max-height:600px){.key{width:56px;height:56px;font-size:26px}.keys{gap:8px 22px}.dots{margin:8px 0}}
+@media (max-height:470px){.pad{flex-direction:row;flex-wrap:wrap;gap:4px 24px}.pad .ptxt{width:44%}.key{width:50px;height:50px;font-size:22px}.key small{display:none}}
+
+/* ---------- home ---------- */
+.home{color:#fff;padding-left:18px;padding-right:18px}
+.home .hscroll{flex:1;min-height:0;overflow-y:auto;padding-bottom:12px}
+.home .hscroll,.home .dock{position:relative;z-index:1}
+.widget{display:grid;grid-template-columns:1fr auto;gap:10px;background:rgba(255,255,255,.22);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:24px;padding:14px 16px;margin:6px 0 16px;align-items:center}
+.widget .wd{font-weight:700;font-size:.9rem;text-transform:uppercase;letter-spacing:.5px;color:#ffd7b0}
+.widget .wn{font-size:2rem;font-weight:700;line-height:1}
+.widget .ww{font-size:.82rem;margin-top:6px;opacity:.95}
+.ring{position:relative;width:86px;height:86px}
+.ring svg{transform:rotate(-90deg)}
+.ring b{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:1.05rem;line-height:1.05}
+.ring b small{font-size:.6rem;font-weight:600;opacity:.95}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 6px;justify-items:center}
+@media (min-aspect-ratio:1/1) and (max-height:600px){.grid{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))}}
+.app{display:flex;flex-direction:column;align-items:center;gap:5px;width:100%;min-width:0;max-width:92px;position:relative;min-height:44px}
+.app .icon{width:min(64px,17vw);aspect-ratio:1;border-radius:23%;overflow:hidden;position:relative;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.app .icon svg{width:100%;height:100%;display:block}
+.app .lbl{font-size:.68rem;font-weight:500;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.app.locked .icon{filter:grayscale(.85) brightness(.6)}
+.app .lockb{position:absolute;inset:0;display:grid;place-items:center}
+.badge{position:absolute;top:-6px;right:-6px;min-width:26px;height:26px;padding:0 7px;border-radius:13px;background:#ff3b30;color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.0)}
+.badge.ok{background:#34c759}
+.app.next .icon{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 6px rgba(255,255,255,.55)}}
+.dock{flex:none;margin:6px 0 calc(22px + env(safe-area-inset-bottom));background:rgba(255,255,255,.25);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:30px;padding:12px 8px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));justify-items:center}
+.dock .lbl{display:none}
+.pdots{display:flex;justify-content:center;gap:7px;margin:12px 0 2px}.pdots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.5)}.pdots i:first-child{background:#fff}
+.wb{display:flex;gap:12px;align-items:center;background:rgba(255,255,255,.92);color:#111;border-radius:20px;padding:12px 14px;margin:4px 0 12px;text-align:left;width:100%;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.wb b{display:block;font-size:.9rem}.wb span{font-size:.82rem;color:#333}
+.wb .x{margin-left:auto;font-size:.8rem;color:var(--blue);font-weight:600;padding:8px}
+
+/* ---------- notification banner ---------- */
+#notif{position:absolute;left:10px;right:10px;top:calc(48px + env(safe-area-inset-top));z-index:70;transform:translateY(-160%);transition:transform .35s cubic-bezier(.2,.9,.3,1.2)}
+#notif.show{transform:none}
+#notif .ncard{background:rgba(245,245,247,.96);color:#111;box-shadow:0 10px 30px rgba(0,0,0,.3);width:100%}
+#notif .ncard .nt span{color:#555}
+
+/* ---------- sheets / alerts ---------- */
+#over{position:absolute;inset:0;z-index:80;display:none}
+#over.show{display:block}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.4)}
+.alert{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(300px,86%);background:rgba(242,242,246,.97);border-radius:16px;text-align:center;overflow:hidden;color:#111}
+.alert h3{margin:18px 16px 4px;font-size:1rem}
+.alert p{margin:0 16px 16px;font-size:.85rem;line-height:1.35}
+.alert .btns{display:flex;border-top:1px solid #c9c9cf}
+.alert .btns button{flex:1;padding:13px;color:var(--blue2);font-weight:600;min-height:50px}
+.alert .btns button+button{border-left:1px solid #c9c9cf}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;color:#111;border-radius:22px 22px 0 0;padding:10px 20px calc(26px + env(safe-area-inset-bottom));max-height:88%;overflow-y:auto;animation:up .3s ease-out}
+@keyframes up{from{transform:translateY(100%)}}
+.sheet .grab{width:40px;height:5px;border-radius:3px;background:#ccc;margin:0 auto 12px}
+.sheet h3{margin:4px 0 8px;font-size:1.15rem}
+.sheet p,.sheet li{font-size:.92rem;line-height:1.4}
+.sheet ol{padding-left:1.3em;margin:8px 0}
+.sheet li{margin:8px 0}
+.bigbtn{display:block;width:100%;background:var(--blue);color:#fff;font-weight:600;border-radius:14px;padding:14px;min-height:56px;margin-top:12px;text-align:center}
+.bigbtn.green{background:var(--green)}
+.bigbtn.grey{background:var(--fill);color:#111}
+.bigbtn[disabled]{background:#b9b9c0;color:#fff}
+
+/* ---------- app chrome ---------- */
+.nav{flex:none;display:grid;grid-template-columns:minmax(80px,1fr) auto minmax(80px,1fr);align-items:center;padding:2px 8px 8px;background:rgba(249,249,251,.94);border-bottom:1px solid var(--line);min-height:52px}
+.nav .back{color:var(--blue2);display:flex;align-items:center;gap:2px;font-size:.95rem;min-height:44px;padding-right:8px;justify-self:start}
+.nav .title{font-weight:700;font-size:1rem;text-align:center;line-height:1.15}
+.nav .title small{display:block;font-weight:500;font-size:.68rem;color:var(--sec)}
+.nav .prog{justify-self:end;font-size:.78rem;font-weight:700;color:var(--sec);background:var(--fill);border-radius:12px;padding:5px 10px}
+.how{margin:12px 14px 4px;background:#fff;border-radius:14px;padding:11px 14px;font-size:.86rem;line-height:1.35;color:#222;border:1px solid var(--line)}
+.how b{color:var(--blue)}
+.foot{flex:none;background:#fff;border-top:1px solid var(--line);padding:12px 14px calc(20px + env(safe-area-inset-bottom));max-height:62%;overflow-y:auto}
+.foot h4{margin:0 0 8px;font-size:.8rem;color:var(--sec);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.opt{display:block;width:100%;text-align:left;background:var(--bg);border:2px solid var(--line);border-radius:16px;padding:12px 14px;margin:8px 0;font-size:1rem;line-height:1.3;min-height:56px}
+.opt:active{border-color:var(--blue2)}
+.opt.wrong{border-color:#e5a39d;background:#fdf0ef;color:#8a1f15;text-decoration:line-through;opacity:.8}
+.opt.right{border-color:var(--green);background:#e8f6ec}
+.fb{border-radius:16px;padding:12px 14px;margin:4px 0 2px;font-size:.92rem;line-height:1.35}
+.fb.ok{background:#e6f5ea;border:2px solid #9fd8ae}
+.fb.no{background:#fff4e5;border:2px solid #f2c27c}
+.fb.rev{background:#eef3ff;border:2px solid #a9c1f4}
+.fb b{display:block;font-size:1rem;margin-bottom:2px}
+.fb.ok b{color:#156b2f}.fb.no b{color:#8a4b00}.fb.rev b{color:#1d4fb5}
+.nextbtn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;background:var(--blue);color:#fff;font-weight:700;border-radius:14px;min-height:56px;margin-top:10px}
+.pill{display:inline-block;background:var(--fill);border-radius:10px;padding:2px 8px;font-size:.78rem;font-weight:600;color:#333}
+
+/* chat (Messages) */
+.chathead{flex:none;display:flex;flex-direction:column;align-items:center;padding:4px 0 8px;background:rgba(249,249,251,.94);border-bottom:1px solid var(--line);position:relative}
+.chathead .back{position:absolute;left:8px;top:6px}
+.chathead .av{width:46px;height:46px;border-radius:50%;background:linear-gradient(#a5adbd,#848c9c);color:#fff;font-weight:600;font-size:20px;display:grid;place-items:center}
+.chathead .nm{font-size:.75rem;margin-top:3px}
+.chathead .prog{position:absolute;right:10px;top:12px}
+.thread{padding:12px 12px 6px;display:flex;flex-direction:column;gap:6px;background:#fff;min-height:100%}
+.b{max-width:80%;padding:9px 14px;border-radius:20px;font-size:1rem;line-height:1.3;word-wrap:break-word}
+.b.them{align-self:flex-start;background:#e9e9eb;color:#111;border-bottom-left-radius:6px}
+.b.me{align-self:flex-end;background:var(--blue2);color:#fff;border-bottom-right-radius:6px;background:#0a7cff}
+.b.cur{box-shadow:0 0 0 3px #ffcf66}
+.stamp{align-self:center;font-size:.7rem;color:var(--sec);margin:6px 0}
+.typing{align-self:flex-start;background:#e9e9eb;border-radius:20px;padding:12px 16px;display:flex;gap:4px}
+.typing i{width:8px;height:8px;border-radius:50%;background:#999;animation:blink 1.2s infinite}.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{50%{opacity:.3}}
+
+/* notes */
+.notepage{background:#fffdf5;min-height:100%;padding:14px 16px 20px}
+.notepage h2{margin:0;font-size:1.3rem}
+.notepage .nd{color:var(--sec);font-size:.75rem;margin:4px 0 12px}
+.nline{padding:10px 0;border-bottom:1px solid #eee3c4;font-size:1rem;line-height:1.45}
+.nline s{color:#a33;text-decoration-thickness:2px}
+.nline ins{text-decoration:none;color:#fff;background:#c25e00;border-radius:6px;padding:0 5px;margin-left:4px;font-weight:600}
+.nline.cur{background:#fff6d6;border-radius:12px;padding:12px;border:2px solid #f1d27a;margin:8px 0}
+.w{display:inline-block;padding:6px 7px;margin:2px 1px;border-radius:9px;background:#fff;border:1.5px solid #e6d9b0;min-height:44px;font-size:1rem}
+.w:active{background:#ffe9a8}
+.w.bad{background:#fde3e1;border-color:#e59a94}
+
+/* calendar */
+.calq{margin:12px 14px 0;background:#fff;border:2px solid #f3b2ad;border-radius:16px;padding:12px 14px}
+.calq .qn{font-size:.75rem;font-weight:700;color:#c0281c;text-transform:uppercase;letter-spacing:.4px}
+.calq .qt{font-size:1rem;font-weight:600;line-height:1.3;margin-top:3px}
+.month{margin:14px 16px 6px;font-size:1.2rem;font-weight:700}
+.month span{color:#d92d20}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:0 10px}
+.day{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0 10px;border-radius:14px;min-height:72px}
+.day .dn{font-size:.62rem;font-weight:600;color:var(--sec);text-transform:uppercase}
+.day .dd{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:1rem;font-weight:600}
+.day .dot{width:6px;height:6px;border-radius:50%;background:#aaa}
+.day.sel .dd{background:#d92d20;color:#fff}
+.day.sel{background:#fff}
+.agenda{margin:10px 14px;background:#fff;border-radius:16px;overflow:hidden;border:1px solid var(--line)}
+.agenda h5{margin:0;padding:10px 14px;font-size:.85rem;background:#fafafa;border-bottom:1px solid var(--line)}
+.ev{display:flex;gap:12px;padding:12px 14px;border-bottom:1px solid #eee;font-size:.95rem;line-height:1.3}
+.ev:last-child{border-bottom:0}
+.ev i{flex:none;width:5px;border-radius:3px;background:#5856d6}
+.ev:nth-child(3n) i{background:#ff9500}.ev:nth-child(3n+1) i{background:#34c759}
+.ev .et{flex:none;width:4.2em;color:var(--sec);font-size:.8rem;padding-top:2px}
+
+/* voicemail */
+.vlist{background:#fff;margin:12px 0}
+.vrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 16px;border-bottom:1px solid var(--line);min-height:64px}
+.vrow .vd{width:12px;height:12px;border-radius:50%;background:var(--blue2);flex:none}
+.vrow .vd.done{background:transparent}
+.vrow b{font-size:1rem}.vrow span{display:block;font-size:.78rem;color:var(--sec)}
+.vrow .vr{margin-left:auto;font-size:.8rem;color:var(--sec);text-align:right}
+.vrow[disabled]{opacity:.45}
+.vmsg{background:#fff;margin:12px 12px 0;border-radius:16px;padding:14px;border:1px solid var(--line)}
+.wave{display:flex;align-items:center;gap:3px;height:40px;margin:10px 0}
+.wave i{flex:1;background:#c7c7cc;border-radius:2px}
+.vplay{display:flex;align-items:center;gap:10px;font-size:.8rem;color:var(--sec)}
+.vplay button{width:44px;height:44px;border-radius:50%;background:var(--fill);display:grid;place-items:center}
+.tx{font-size:1rem;line-height:1.75;margin-top:6px}
+.tx .tl{font-size:.7rem;font-weight:700;color:var(--sec);text-transform:uppercase;letter-spacing:.4px;display:block;line-height:1.2}
+.gapw{display:inline-block;min-width:4.5em;border-bottom:2px solid #999;text-align:center;color:transparent;line-height:1.3}
+.gapw.cur{background:#fff3c4;border-bottom-color:#c25e00;border-radius:6px 6px 0 0}
+.gapw.fill{color:#0a5bc4;font-weight:700;border-bottom-color:#0a5bc4;min-width:0;padding:0 2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:#eef3ff;border:2px solid #b8cdf6;color:#123d91;border-radius:22px;padding:9px 14px;font-weight:600;min-height:48px;font-size:.95rem}
+.chip[disabled]{opacity:.35;text-decoration:line-through}
+.chip.bad{background:#fde3e1;border-color:#e59a94;color:#8a1f15}
+
+/* call */
+.call{background:linear-gradient(180deg,#3a4b5e,#1d2733);color:#fff;align-items:center;text-align:center}
+.call .cav{width:110px;height:110px;border-radius:50%;background:linear-gradient(#b7c2cf,#8592a2);display:grid;place-items:center;font-size:48px;font-weight:600;margin-top:min(9vh,70px)}
+.call .cn{font-size:2rem;font-weight:600;margin-top:16px}
+.call .cs{opacity:.85;font-size:.95rem;margin-top:4px}
+.call .cbtns{margin-top:auto;margin-bottom:calc(60px + env(safe-area-inset-bottom));display:flex;gap:80px}
+.call .cb{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:.85rem}
+.call .cb span{width:76px;height:76px;border-radius:50%;display:grid;place-items:center}
+.call .cb.dec span{background:#ff3b30}.call .cb.acc span{background:#34c759;animation:ring 1.2s infinite}
+@keyframes ring{0%,100%{transform:rotate(0)}10%,30%{transform:rotate(-14deg)}20%,40%{transform:rotate(14deg)}}
+.incall{background:#f2f2f7}
+.incall .ctop{flex:none;background:linear-gradient(180deg,#3a4b5e,#26323f);color:#fff;text-align:center;padding:6px 10px 14px}
+.incall .ctop b{font-size:1.25rem;display:block}.incall .ctop span{font-variant-numeric:tabular-nums;opacity:.9;font-size:.9rem}
+.roles{margin:12px 14px 0;background:#fff;border-radius:14px;border:1px solid var(--line);padding:10px 14px;font-size:.85rem;line-height:1.35}
+.roles p{margin:4px 0}
+.pcard{display:flex;gap:12px;align-items:flex-start;width:calc(100% - 28px);margin:10px 14px 0;text-align:left;background:#fff;border:2px solid var(--line);border-radius:16px;padding:12px 14px;min-height:64px}
+.pcard .tick{flex:none;width:34px;height:34px;border-radius:50%;border:2.5px solid #b5b5bd;display:grid;place-items:center;margin-top:2px}
+.pcard.on{border-color:#9fd8ae;background:#f1faf3}
+.pcard.on .tick{background:var(--green);border-color:var(--green)}
+.pcard .who{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#6a3fb5}
+.pcard .who.s{color:#b04a00}
+.pcard .say{font-size:.95rem;line-height:1.3;margin:2px 0 6px}
+.pcard .use{display:inline-block;background:#fff1d6;border-radius:8px;padding:3px 8px;font-weight:700;font-size:.85rem;color:#7a3c00}
+.endcall{background:#ff3b30}
+
+/* match (Translate) */
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 14px}
+.mcol h5{margin:0 0 6px;font-size:.72rem;text-transform:uppercase;letter-spacing:.4px;color:var(--sec);text-align:center}
+.mt{display:flex;align-items:center;justify-content:center;text-align:center;width:100%;min-height:72px;background:#fff;border:2px solid var(--line);border-radius:16px;padding:8px;margin-bottom:10px;font-size:.92rem;line-height:1.25;font-weight:600}
+.mt.au{color:#1d3f8f}
+.mt.sel{border-color:var(--blue2);background:#e7f0ff;box-shadow:0 0 0 3px rgba(0,122,255,.25)}
+.mt.done{background:#e8f6ec;border-color:#9fd8ae;color:#1b6b33;opacity:.7}
+.mt.bad{animation:shake .4s;border-color:#e59a94;background:#fde3e1}
+.toast{position:absolute;left:50%;top:calc(var(--sbh) + 64px);transform:translateX(-50%);background:rgba(30,30,30,.92);color:#fff;padding:10px 18px;border-radius:20px;font-size:.85rem;z-index:75;max-width:86%;text-align:center}
+
+/* photos */
+.pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:3px;padding:3px}
+.thumb{position:relative;aspect-ratio:1;display:grid;place-items:center;font-size:clamp(28px,9vw,44px);overflow:hidden;width:100%}
+.thumb .tb{position:absolute;right:6px;bottom:6px;width:28px;height:28px;border-radius:50%;background:#fff;display:grid;place-items:center}
+.scene{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px;line-height:1.1;padding:10px}
+.viewer{background:#000;color:#fff}
+.viewer .vtop{flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 10px 8px}
+.viewer .vtop .back{color:#4da3ff}
+.viewer .vtop .pm{text-align:center;font-size:.8rem;line-height:1.2}
+.viewer .vtop .pm b{font-size:.92rem}
+.bigpic{margin:0 0 0;aspect-ratio:4/3;max-height:34vh;width:100%;display:grid;place-items:center;font-size:clamp(40px,13vw,64px)}
+.palt{margin:10px 14px;font-size:.88rem;line-height:1.35;color:#eee;background:#1c1c1e;border-radius:12px;padding:10px 12px}
+.viewer .foot{background:#1c1c1e;border-top:1px solid #333;color:#fff}
+.viewer .foot h4{color:#bbb}
+.viewer .opt{background:#2c2c2e;border-color:#3a3a3c;color:#fff}
+.viewer .opt.wrong{background:#3a1f1d;color:#ffb4ab;border-color:#7a3a33}
+.viewer .opt.right{background:#173b22;border-color:#2f8f4e}
+.viewer .fb.ok{background:#173b22;border-color:#2f8f4e}.viewer .fb.ok b{color:#9fe2b3}
+.viewer .fb.no{background:#3d2c12;border-color:#8a6420}.viewer .fb.no b{color:#ffcf7a}
+.viewer .fb.rev{background:#1b2a4a;border-color:#3d5c9a}.viewer .fb.rev b{color:#a9c7ff}
+.capdone{margin:10px 14px;background:#173b22;border-radius:12px;padding:12px;font-size:1rem}
+
+/* crew chat (react) */
+.crew .chathead{background:#075e54;color:#fff;border:0;flex-direction:row;justify-content:flex-start;gap:10px;padding:6px 12px 10px}
+.crew .chathead .back{position:static;color:#fff}
+.crew .chathead .av{background:#25a18e;width:42px;height:42px;font-size:20px}
+.crew .chathead .gi b{display:block;font-size:.95rem}.crew .chathead .gi span{font-size:.68rem;opacity:.9}
+.crew .chathead .prog{position:static;margin-left:auto;background:rgba(255,255,255,.2);color:#fff}
+.crew .body{background:#ece5dd}.crewbg{background:#ece5dd;min-height:100%;padding:12px 10px;display:flex;flex-direction:column;gap:8px}
+.cm{align-self:flex-start;max-width:86%;background:#fff;border-radius:4px 14px 14px 14px;padding:7px 10px 18px;position:relative;box-shadow:0 1px 1px rgba(0,0,0,.12);font-size:1rem;line-height:1.3}
+.cm.mine{align-self:flex-end;background:#dcf8c6;border-radius:14px 4px 14px 14px}
+.cm .cf{font-size:.75rem;font-weight:700;color:#b5179e;display:block;margin-bottom:2px}
+.cm .cf.c1{color:#0b7a3c}.cm .cf.c2{color:#c25e00}.cm .cf.c3{color:#5b3cc4}
+.cm .rx{position:absolute;right:8px;bottom:-14px;background:#fff;border-radius:14px;padding:1px 7px;font-size:1rem;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.cm.cur{box-shadow:0 0 0 3px #ffcf66}
+.cm .ct{position:absolute;right:8px;bottom:3px;font-size:.6rem;color:#777}
+.rbar{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:8px}
+.rb{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:8px 4px;min-height:64px;font-size:.78rem;font-weight:600}
+.rb em{font-style:normal;font-size:1.6rem;line-height:1}
+.rb.wrong{opacity:.4;text-decoration:line-through}
+
+/* mail */
+.inbox{background:#fff;margin-top:6px}
+.mrow{display:flex;gap:10px;width:100%;text-align:left;padding:12px 14px 12px 8px;border-bottom:1px solid var(--line);min-height:76px}
+.mrow .ud{flex:none;width:12px;height:12px;border-radius:50%;margin-top:6px;background:transparent}
+.mrow .ud.on{background:var(--blue2)}
+.mrow .mf{display:flex;justify-content:space-between;font-weight:700;font-size:.95rem}
+.mrow .mf span{font-weight:400;color:var(--sec);font-size:.75rem}
+.mrow .ms{font-size:.88rem}
+.mrow .mp{font-size:.8rem;color:var(--sec);margin-top:2px}
+.split{flex:1;min-height:0;display:flex;flex-direction:column}
+.split .top{flex:1 1 50%;min-height:0;overflow-y:auto;background:#fff;padding:12px 16px}
+.split .top h3{margin:0 0 6px;font-size:1.05rem}
+.split .top .meta{font-size:.78rem;color:var(--sec);border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:6px}
+.split .top p{font-size:.95rem;line-height:1.45;margin:8px 0}
+.split .foot{flex:0 1 auto;max-height:55%}
+@media (max-height:520px){.split{flex-direction:row}.split .top{flex:1 1 55%}.split .foot{max-height:none;border-top:0;border-left:1px solid var(--line);flex:1 1 45%}}
+.tfn{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.tfn button{background:var(--bg);border:2px solid var(--line);border-radius:14px;min-height:60px;font-weight:700;font-size:.9rem;padding:6px}
+.tfn button.wrong{opacity:.4;text-decoration:line-through}
+.stmt{font-size:1.02rem;font-weight:600;line-height:1.3}
+
+/* payday (swipe) */
+.payday{background:linear-gradient(180deg,#0f3d2e,#0b2a20)}
+.payday .nav{background:rgba(15,61,46,.95);border-color:#1f5a46}
+.payday .nav .title,.payday .nav .back{color:#fff}.payday .nav .prog{background:rgba(255,255,255,.18);color:#fff}
+.payday .how{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)}
+.payday .how b{color:#b7f5d2}
+.stack{position:relative;margin:18px auto 10px;width:calc(100% - 40px);max-width:420px;min-height:220px}
+.pc{position:absolute;inset:0;background:#fff;border-radius:22px;padding:22px 20px;display:flex;flex-direction:column;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,.35);font-size:1.1rem;font-weight:600;line-height:1.35;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.pc.behind{transform:scale(.94) translateY(14px);opacity:.6}
+.pc .pcn{font-size:.72rem;color:var(--sec);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.pc .stampx{position:absolute;top:16px;font-size:.9rem;font-weight:800;border:3px solid;border-radius:8px;padding:2px 8px;opacity:0}
+.pc .stampx.l{left:16px;color:#d92d20;transform:rotate(-12deg)}.pc .stampx.r{right:16px;color:#1f9e45;transform:rotate(12deg)}
+.swbtns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 20px 0}
+.swbtns button{min-height:64px;border-radius:18px;font-weight:800;font-size:1rem;color:#fff}
+.swbtns .r{background:#d92d20}.swbtns .g{background:#1f9e45}
+.swbtns button.wrong{opacity:.35}
+.payday .fbwrap{margin:12px 20px}
+
+/* clock (picker) */
+.clockp{background:#000;color:#fff}
+.clockp .nav{background:#000;border-color:#222}
+.clockp .nav .title{color:#fff}.clockp .nav .back{color:#ff9f0a}.clockp .nav .prog{background:#222;color:#ddd}
+.clockp .how{background:#1c1c1e;color:#eee;border-color:#333}.clockp .how b{color:#ff9f0a}
+.alarm{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 18px;border-bottom:1px solid #2a2a2c;min-height:84px;color:#fff}
+.alarm .at{font-size:2.3rem;font-weight:300;line-height:1;font-variant-numeric:tabular-nums}
+.alarm .at small{font-size:1rem}
+.alarm .al{font-size:.9rem;line-height:1.3;color:#d0d0d4;margin-top:4px}
+.alarm .al b{color:#ff9f0a}
+.alarm.off .at,.alarm.off .al{opacity:.45}
+.alarm.cur{background:#1c1c1e}
+.alarm .sw{margin-left:auto;flex:none;width:52px;height:32px;border-radius:16px;background:#39393d;position:relative}
+.alarm .sw::after{content:"";position:absolute;top:2px;left:2px;width:28px;height:28px;border-radius:50%;background:#fff;transition:left .2s}
+.alarm .sw.on{background:#30d158}.alarm .sw.on::after{left:22px}
+.alarm .tap{font-size:.7rem;font-weight:700;background:#ff9f0a;color:#000;border-radius:8px;padding:3px 7px;margin-left:auto;flex:none}
+.wheelwrap{position:relative;margin:10px 0;background:#f2f2f7;border-radius:16px;padding:8px 0}
+.wheel{display:flex;flex-direction:column;align-items:stretch}
+.wheel button{min-height:54px;font-size:1.15rem;color:#555;border-radius:12px;margin:2px 10px}
+.wheel button.sel{color:#000;font-weight:700;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.wheel button.wrong{color:#b33;text-decoration:line-through;opacity:.6}
+.psent{font-size:1.05rem;line-height:1.35;font-weight:600}
+.psent b{color:var(--orange);border-bottom:2px dashed var(--orange)}
+
+/* reminders (build) */
+.rem{background:#fff;min-height:100%}
+.rem h2{margin:0;padding:12px 18px 4px;color:#0a6fe0;font-size:1.5rem}
+.ritem{display:flex;gap:12px;padding:12px 18px;border-bottom:1px solid #eee;font-size:1rem;line-height:1.35}
+.ritem .rc{flex:none;width:26px;height:26px;border-radius:50%;border:2px solid #c7c7cc;margin-top:1px}
+.ritem.done .rc{background:#0a6fe0;border-color:#0a6fe0;box-shadow:inset 0 0 0 3px #fff}
+.ritem.done span{color:var(--sec)}
+.ritem.cur{background:#f3f8ff}
+.line{display:flex;flex-wrap:wrap;gap:6px;min-height:58px;padding:8px;border:2px dashed #9ab;border-radius:14px;background:#fff;margin-bottom:10px}
+.tile{background:#fff;border:2px solid #b8cdf6;color:#123d91;border-radius:12px;padding:8px 11px;font-weight:600;min-height:48px;font-size:.98rem}
+.line .tile{background:#e7f0ff}
+.tile.badpos{border-color:#e59a94;background:#fde3e1;color:#8a1f15}
+.bank{display:flex;flex-wrap:wrap;gap:6px}
+.row2{display:grid;grid-template-columns:1fr 2fr;gap:10px}
+.row2 .bigbtn{margin-top:10px}
+
+/* word up (letters) */
+.wordup{background:linear-gradient(180deg,#ff8a3d,#e8533f)}
+.wordup .nav{background:rgba(232,83,63,.95);border-color:#c84630}
+.wordup .nav .title,.wordup .nav .back{color:#fff}.wordup .nav .prog{background:rgba(255,255,255,.25);color:#fff}
+.wcard{margin:12px 14px;background:#fff;border-radius:20px;padding:14px;text-align:center}
+.wclue{font-size:1.02rem;line-height:1.35;font-weight:600}
+.hearts{font-size:1.1rem;letter-spacing:2px;margin-top:6px}
+.slots{display:flex;justify-content:center;flex-wrap:wrap;gap:5px;margin:12px 0 4px}
+.slots i{font-style:normal;width:clamp(26px,8vw,36px);height:clamp(34px,10vw,44px);border-bottom:3px solid #333;font-size:1.2rem;font-weight:800;display:grid;place-items:center;text-transform:uppercase}
+.slots i.miss{color:#d92d20}
+.kb{padding:4px 6px 0}
+.kr{display:flex;justify-content:center;gap:5px;margin-bottom:7px}
+.kb button{flex:1;max-width:44px;min-height:52px;border-radius:8px;background:#fff;font-weight:700;font-size:1.05rem;box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.kb button.hit{background:#1f9e45;color:#fff}
+.kb button.miss{background:#6e6e73;color:#ddd}
+
+/* roster */
+.rost{background:#f2f0ff}
+.rost .nav{background:#4b3ab8;border-color:#3a2c94}
+.rost .nav .title,.rost .nav .back{color:#fff}.rost .nav .prog{background:rgba(255,255,255,.2);color:#fff}
+.rolebtn{display:block;width:calc(100% - 28px);margin:12px 14px 0;text-align:left;background:#fff;border:2px solid #cfc7f5;border-radius:18px;padding:14px 16px;min-height:72px}
+.rolebtn b{display:block;font-size:1.05rem;color:#3a2c94}.rolebtn span{font-size:.85rem;color:#444}
+.rcard{margin:12px 14px 0;background:#fff;border-radius:18px;border:2px solid #cfc7f5;overflow:hidden}
+.rcard h4{margin:0;background:#4b3ab8;color:#fff;padding:10px 14px;font-size:.95rem}
+.rcard ul{margin:0;padding:10px 14px 10px 32px}
+.rcard li{font-size:.95rem;line-height:1.35;margin:6px 0}
+.sect{margin:16px 16px 0;font-size:.8rem;font-weight:800;color:#3a2c94;text-transform:uppercase;letter-spacing:.4px}
+
+/* settings */
+.set{background:#f2f2f7}
+.sgroup{background:#fff;margin:14px 14px 0;border-radius:14px;overflow:hidden}
+.shead{margin:18px 30px 6px;font-size:.72rem;text-transform:uppercase;color:var(--sec);letter-spacing:.4px}
+.srow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border-bottom:1px solid #e5e5ea;min-height:56px;font-size:.95rem}
+.srow:last-child{border-bottom:0}
+.srow .sv{margin-left:auto;color:var(--sec);font-size:.85rem;text-align:right}
+.srow.danger{color:#d92d20;font-weight:600}
+.srow .sic{flex:none;width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:#fff;font-size:17px}
+.prof .av{width:62px;height:62px;border-radius:50%;background:linear-gradient(#ffb36b,#f0695f);color:#fff;font-size:24px;font-weight:600;display:grid;place-items:center;flex:none}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);background:#e3e3e8;border-radius:12px;padding:3px;margin:4px 14px 12px}
+.seg button{border-radius:10px;min-height:52px;font-weight:700}
+.seg button.on{background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.18)}
+.preview{margin:0 14px 12px;font-size:.95rem;color:#333;line-height:1.35}
+.warnbox{margin:14px;background:#fff4e5;border:2px solid #f2c27c;border-radius:14px;padding:12px;font-size:.88rem;line-height:1.35}
+
+/* complete + final */
+.done{align-items:center;text-align:center;padding:18px 22px;background:#fff;overflow-y:auto}
+.done .big{width:96px;height:96px;border-radius:50%;background:#e6f5ea;display:grid;place-items:center;margin:min(5vh,30px) auto 10px}
+.done h2{margin:6px 0 2px;font-size:1.4rem}
+.done .score{color:var(--sec);font-size:.92rem}
+.stars{font-size:1.8rem;letter-spacing:4px;margin:6px 0}
+.found{background:#fff7e6;border:2px solid #f2c27c;border-radius:16px;padding:12px 14px;margin:14px 0 6px;font-size:.95rem;line-height:1.35;text-align:left;width:100%}
+.found b{display:block;font-size:.75rem;text-transform:uppercase;letter-spacing:.4px;color:#8a4b00;margin-bottom:2px}
+.unl{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px 0}
+.unl span{background:#e7f0ff;color:#123d91;border-radius:12px;padding:6px 10px;font-weight:600;font-size:.85rem}
+.final{background:linear-gradient(170deg,#1b1f4b,#4b2a6e 50%,#d1607a);color:#fff;text-align:center;align-items:center;padding-left:22px;padding-right:22px}
+.final h2{font-size:1.6rem;margin:16px 0 6px}
+.final .msg{background:rgba(255,255,255,.95);color:#111;border-radius:18px;padding:12px 14px;text-align:left;margin:8px 0;width:100%;font-size:.95rem;line-height:1.35}
+.final .msg b{color:#0a6fe0}
+.confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.confetti i{position:absolute;top:-20px;width:10px;height:14px;border-radius:2px;animation:fall 3.2s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="device">
+  <div id="screen">
+    <div class="island"></div>
+    <div id="status"></div>
+    <div id="view"></div>
+    <div id="notif"></div>
+    <div id="over"></div>
+    <div id="homebar" aria-hidden="true"></div>
+  </div>
+</div>
+<script>
+"use strict";
+const DATA = {"meta":{"title":"Sari's Phone","lesson":"Term 4 Lesson 3: First shifts","file":"Term_4_Lesson_3_First_Shifts_Saris_Phone","passcode":"2622","storageKey":"saris_phone_t4l3_v1","owner":"Sari Wijaya"},"expressions":[["give us a rundown","tell me the main points, quickly"],["get stuck into it","start working hard, with energy"],["divvy up","share or divide between people"],["go easy on me","be gentle with me"],["the pointy end","the busiest, most important part"],["all over the shop","messy, with no order"],["feral","wild and out of control (a day, a place, kids)"],["far out","wow! (surprise, good or bad)"],["out of line","rude, unfair or not acceptable"],["pull your head in","stop being rude or loud (very blunt)"],["cop it","get blamed or told off"],["blow over","a problem passes and people forget it"],["it is what it is","we can't change it, so we accept it"],["put it this way","an indirect answer is coming"],["headspace","your state of mind"],["something's off","something isn't right"],["red flag","a warning sign"],["a bit of a stretch","not quite true, too much to believe"],["ticks all the boxes","has everything you want or need"],["happy days","great, that is good news"]],"apps":[{"id":"messages","name":"Messages","type":"chat","icon":"messages","contact":"Budi","contactSub":"mobile","how":"Budi wants to hear about Sari's first shift. Choose Sari's best reply.","unlockNote":"This is Sari's phone. Her husband is Budi.","items":[{"them":"Hey love! How was your first shift? Come on, give us a rundown 😄","opts":["It's a red flag. I made sixty coffees and broke one cup.","Put it this way: I made sixty coffees and broke only one cup.","Pull your head in. Sixty coffees and only one broken cup."],"why":"\"Put it this way\" starts an answer that is a little indirect. The other two are rude or have the wrong meaning.","ans":1,"answerText":"Put it this way: I made sixty coffees and broke only one cup."},{"them":"Far out, sixty! Was the manager nice to you?","opts":["Yes. I asked Harry to go easy at me, and he did.","Yes. I asked Harry to blow over me, and he did.","Yes. I asked Harry to go easy on me, and he did."],"why":"The pattern is \"go easy on + a person\". It means \"be gentle with me\".","ans":2,"answerText":"Yes. I asked Harry to go easy on me, and he did."},{"them":"Who does what in that kitchen?","opts":["Harry divvies up the jobs at seven. I got dishes and sandwiches.","Harry goes easy on the jobs at seven. I got dishes and sandwiches.","Harry blows over the jobs at seven. I got dishes and sandwiches."],"why":"\"Divvy up\" means share between people. \"Go easy on\" a thing means do not use too much of it.","ans":0,"answerText":"Harry divvies up the jobs at seven. I got dishes and sandwiches."},{"them":"And the lunch rush? Busy?","opts":["A bit of a stretch. Twenty people at the counter at once.","Happy days! Twenty people at the counter, and I cried.","Feral! Twenty people at the counter at once."],"why":"A feral lunch rush is wild and very busy.","ans":2,"answerText":"Feral! Twenty people at the counter at once."},{"them":"Did anything go wrong? 😬","opts":["I copped Harry from it. I put the soy milk in the wrong fridge.","I copped it from Harry. I put the soy milk in the wrong fridge.","I headspaced it from Harry. I put the soy milk in the wrong fridge."],"why":"\"Cop it from + a person\" means that person told you off. Past tense: copped it.","ans":1,"answerText":"I copped it from Harry. I put the soy milk in the wrong fridge."},{"them":"Oh no. Are you okay?","opts":["Yeah. I'll blow it over. Harry says everyone does it once.","Yeah. It's out of line. Harry says everyone does it once.","Yeah. It'll blow over. Harry says everyone does it once."],"why":"The problem blows over. You cannot \"blow it over\" in this meaning.","ans":2,"answerText":"Yeah. It'll blow over. Harry says everyone does it once."},{"them":"What are the other workers like?","opts":["Lovely. But Daniel ticks all the boxes. He never says hello.","Lovely. But Daniel is happy days. He never says hello.","Lovely. But something's off with Daniel. He never says hello."],"why":"\"Something's off\" means something is not right, but you are not sure what.","ans":2,"answerText":"Lovely. But something's off with Daniel. He never says hello."},{"them":"So do you still want the job?","opts":["Yes! Five minutes from home, and the hours fit school. It ticks all the boxes.","Yes! Five minutes from home, and the hours fit school. It's a red flag.","Yes! Five minutes from home, and the hours fit school. It ticks all the squares."],"why":"It ticks all the boxes: it has everything she needs. The words do not change.","ans":0,"answerText":"Yes! Five minutes from home, and the hours fit school. It ticks all the boxes."},{"them":"So proud of you. Dinner's ready. Kevin and Mia made noodles 🍜","opts":["Happy days! I'm starving.","Pull your head in! I'm starving.","It's the pointy end! I'm starving."],"why":"\"Happy days!\" is a happy reply to good news.","ans":0,"answerText":"Happy days! I'm starving."},{"them":"Warning: the kitchen is a disaster. The kids helped 😅","opts":["Far out. Okay, I'll get stuck onto the dishes after dinner.","Far out. Okay, I'll get stuck into the dishes after dinner.","Far out. Okay, I'll divvy into the dishes after dinner."],"why":"Get stuck INTO something: start it with energy.","ans":1,"answerText":"Far out. Okay, I'll get stuck into the dishes after dinner."}],"count":10},{"id":"notes","name":"Notes","type":"tapword","icon":"notes","noteTitle":"Aussie words from work 🇦🇺","how":"Sari wrote down what people said at work. One word in each line is wrong. Tap the wrong word.","unlockNote":"Sari started a new job at a café this week.","items":[{"text":"Harry said: Right, Sari, get stuck onto the sandwiches.","wrong":"onto","right":"into","why":"get stuck into it","idx":6},{"text":"Anya said: Saturdays here are federal.","wrong":"federal","right":"feral","why":"feral = wild and very busy","idx":5},{"text":"Rafi said: Go easy at me. It is my first week too.","wrong":"at","right":"on","why":"go easy on me","idx":4},{"text":"Harry said: December is the pointed end for cafés.","wrong":"pointed","right":"pointy","why":"the pointy end","idx":5},{"text":"Daniel's jokes were totally out of lane.","wrong":"lane","right":"line","why":"out of line","idx":6},{"text":"Anya told Daniel to pull his hat in.","wrong":"hat","right":"head","why":"pull your head in","idx":6},{"text":"Don't worry. It'll blow under by Friday.","wrong":"under","right":"over","why":"blow over","idx":4},{"text":"Something's on with the coffee machine.","wrong":"on","right":"off","why":"something's off","idx":1},{"text":"Harry gave us a run-up of the new menu.","wrong":"run-up","right":"rundown","why":"a rundown = a short summary","idx":4},{"text":"Cash only and no payslip? That is a red flat.","wrong":"flat","right":"flag","why":"a red flag = a warning sign","idx":9},{"text":"We divvy down the tips every Friday.","wrong":"down","right":"up","why":"divvy up","idx":2},{"text":"My new roster ticks all the boxes. Happy nights!","wrong":"nights","right":"days","why":"happy days","idx":8}],"count":12},{"id":"calendar","name":"Calendar","type":"calendar","icon":"calendar","how":"Read Sari's week. Tap a day to see it. Then choose the day that answers the question.","unlockNote":"Sari works at Beamish Lane Café, Beamish Street, Campsie.","week":[{"d":"Mon","n":16,"ev":[["7:00","First shift 7 to 1. Ask Harry to go easy on me!"],["4:30","Kevin swimming, Campsie pool"]]},{"d":"Tue","n":17,"ev":[["7:00","Shift 7 to 1"],["2:00","Coffee with Wen. Give her the rundown!"]]},{"d":"Wed","n":18,"ev":[["8:00","Day off. Walk in Anzac Park. Headspace day"],["9:30","Mia school assembly"]]},{"d":"Thu","n":19,"ev":[["7:00","Shift 7 to 1. Harry divvies up the Christmas jobs"],["3:00","Check payslip. Something's off?"]]},{"d":"Fri","n":20,"ev":[["9:00","English class"],["3:00","Shift 3 to 7 (new!)"],["","Payday 💰"]]},{"d":"Sat","n":21,"ev":[["7:00","Shift 7 to 1. Anya says Saturdays are feral"],["10:00 pm","Budi: night fill"]]},{"d":"Sun","n":22,"ev":[["12:30","Family lunch in Lakemba. Happy days"],["4:00","Kids' rooms are all over the shop. Clean up!"]]}],"items":[{"q":"On which day does Sari think there is a problem with her pay?","ans":3},{"q":"On which day did Sari ask her boss to be gentle with her?","ans":0},{"q":"On which day is the café wild and very busy?","ans":5},{"q":"On which day does Sari want time to clear her mind?","ans":2},{"q":"On which day will Sari tell Wen the main points about her job?","ans":1},{"q":"On which day does Sari get paid?","ans":4},{"q":"On which day is the house very messy?","ans":6},{"q":"On which day will the manager share out the jobs?","ans":3},{"q":"On which day does Budi work at night?","ans":5},{"q":"On which day does Sari work in the afternoon?","ans":4},{"q":"Which day sounds like great news for the whole family?","ans":6}],"count":11},{"id":"voicemail","name":"Voicemail","type":"voicemail","icon":"voicemail","how":"Read the voicemail messages. Tap the words to fill each gap.","unlockNote":"Sari has a friend from English class called Wen.","msgs":[{"from":"Harry (Café)","when":"Monday 2:14 pm","dur":"0:42","extra":["go easy on"],"parts":[{"t":"Hi Sari, it's Harry from the café. Thanks for today. You really "},{"gap":0},{"t":" it. Tomorrow's a big one. We've got a catering order, so I'll "},{"gap":1},{"t":" the jobs at seven. And don't worry about the soy milk. It's already "},{"gap":2},{"t":". See you then."}],"gaps":["got stuck into","divvy up","blown over"],"bank":["divvy up","got stuck into","blown over","go easy on"]},{"from":"Wen","when":"Tuesday 9:05 am","dur":"0:55","extra":["happy days"],"parts":[{"t":"Sari! It's Wen. Budi says you started at the café. "},{"gap":0},{"t":"! Call me and "},{"gap":1},{"t":". Also, Budi says "},{"gap":2},{"t":" with your payslip. If they pay cash with no payslip, that's a "},{"gap":3},{"t":". Talk to Harry first, okay? Bye!"}],"gaps":["Far out","give us a rundown","something's off","red flag"],"bank":["happy days","something's off","Far out","give us a rundown","red flag"]},{"from":"Budi","when":"Friday 11:48 am","dur":"0:31","extra":["the pointy end"],"parts":[{"t":"Hi love. Mia's school called. She's fine, she just fell over. I'm going to get her. Sorry, the house is "},{"gap":0},{"t":". Kevin says his teacher is "},{"gap":1},{"t":" because she gave him homework on a Friday. I told him that's "},{"gap":2},{"t":". Love you."}],"gaps":["all over the shop","out of line","a bit of a stretch"],"bank":["out of line","all over the shop","a bit of a stretch","the pointy end"]}],"count":10},{"id":"phone","name":"Phone","type":"call","icon":"phone","code":"4729","caller":"Wen","how":"Wen is calling. Work with the person next to you. Act out the phone call.","unlockNote":"Sari and Wen talked for 20 minutes about the café.","roles":[["Student A","Sari. You just finished your first week at the café."],["Student B","Wen. You call Sari to hear all about it."],["If there are three of you","Student C is Budi. Join halfway. Use three expressions."]],"items":[{"who":"Wen","say":"Ask Sari for the main points of her week.","use":"give us a rundown"},{"who":"Sari","say":"Say how your first day started.","use":"get stuck into it"},{"who":"Wen","say":"Ask who gives out the jobs.","use":"divvy up"},{"who":"Sari","say":"Tell Wen what you asked Harry on day one.","use":"go easy on me"},{"who":"Wen","say":"React to the lunch rush.","use":"far out / feral"},{"who":"Sari","say":"Describe the kitchen at 1 pm.","use":"all over the shop"},{"who":"Sari","say":"Tell the soy milk story.","use":"cop it"},{"who":"Wen","say":"Help Sari feel better.","use":"blow over"},{"who":"Sari","say":"Talk about Daniel and his jokes.","use":"out of line"},{"who":"Wen","say":"Ask: do you like it? Sari answers.","use":"put it this way / ticks all the boxes"}],"count":10},{"id":"translate","name":"Translate","type":"match","icon":"translate","how":"Tap an Aussie expression. Then tap the plain English that means the same.","unlockNote":"Sari is learning Aussie English at work.","rounds":[{"pairs":[["give us a rundown","tell me the main points"],["get stuck into it","start working hard"],["divvy up","share between people"],["go easy on me","be gentle with me"],["the pointy end","the busiest, most important part"],["out of line","rude or not acceptable"]],"left":["go easy on me","get stuck into it","out of line","the pointy end","divvy up","give us a rundown"],"right":["share between people","be gentle with me","tell me the main points","rude or not acceptable","the busiest, most important part","start working hard"]},{"pairs":[["pull your head in","stop being rude"],["it is what it is","we can't change it"],["headspace","your state of mind"],["a bit of a stretch","not quite true"],["far out","wow!"],["happy days","great news"]],"left":["it is what it is","pull your head in","happy days","headspace","far out","a bit of a stretch"],"right":["wow!","great news","not quite true","we can't change it","stop being rude","your state of mind"]}],"count":12},{"id":"photos","name":"Photos","type":"photos","icon":"photos","how":"Open each photo. Choose the caption Sari wrote.","unlockNote":"Sari takes lots of photos at work and at home.","items":[{"pic":["☕","🙋","🙋‍♂️","🙋","🙋‍♂️"],"bg":["#f6d365","#fda085"],"place":"Beamish Lane Café","time":"Sat 11:04 am","alt":"A long line of customers at the counter.","opts":["Good headspace today.","It ticks all the boxes!","Saturdays are feral!"],"ans":2,"answerText":"Saturdays are feral!"},{"pic":["🍳","🥣","🍽️","🧽","🥄"],"bg":["#a1c4fd","#c2e9fb"],"place":"Café kitchen","time":"Mon 1:15 pm","alt":"Dirty pans, bowls and plates everywhere.","opts":["The kitchen's all over the shop.","The kitchen is a red flag.","Happy days in the kitchen."],"ans":0,"answerText":"The kitchen's all over the shop."},{"pic":["🎄","📅","☕","🥪"],"bg":["#84fab0","#8fd3f4"],"place":"Staff room","time":"Thu 2:30 pm","alt":"The Christmas roster: every day from 18 to 24 December.","opts":["It's a bit of a stretch.","Something blew over.","Welcome to the pointy end."],"ans":2,"answerText":"Welcome to the pointy end."},{"pic":["🍕","💵","➗","👥"],"bg":["#fccb90","#d57eeb"],"place":"Pizza night, Campsie","time":"Fri 8:40 pm","alt":"Six friends share the bill. $15 each.","opts":["We went easy on the bill.","We copped it for the bill.","We divvied up the bill."],"ans":2,"answerText":"We divvied up the bill."},{"pic":["📄","✅","🏫","🕒"],"bg":["#e0c3fc","#8ec5fc"],"place":"Home","time":"Fri 6:10 pm","alt":"A job offer: three days a week, near the school, good pay.","opts":["This job ticks all the boxes!","This job is all over the shop!","This job is out of line!"],"ans":0,"answerText":"This job ticks all the boxes!"},{"pic":["🌳","🚶‍♀️","☀️","🐦"],"bg":["#d4fc79","#96e6a1"],"place":"Anzac Park, Campsie","time":"Wed 8:02 am","alt":"A quiet morning walk in the park.","opts":["Morning walk. Totally feral.","Morning walk. Good headspace.","Morning walk. Pull your head in."],"ans":1,"answerText":"Morning walk. Good headspace."},{"pic":["🌧️","🚌","❌","⏰"],"bg":["#cfd9df","#e2ebf0"],"place":"Campsie station","time":"Tue 6:21 am","alt":"The bus is cancelled. Sari must wait 20 minutes.","opts":["Bus cancelled. Happy days.","Bus cancelled. It is what it is.","Bus cancelled. It ticks all the boxes."],"ans":1,"answerText":"Bus cancelled. It is what it is."},{"pic":["🎂","🏆","👧","🎉"],"bg":["#ff9a9e","#fecfef"],"place":"Mia's school","time":"Sat 3:45 pm","alt":"Mia's cake won first prize.","opts":["First prize! Happy days!","First prize! Something's off.","First prize! It is what it is."],"ans":0,"answerText":"First prize! Happy days!"},{"pic":["📦","📦","📦","🚚","⏰"],"bg":["#fbc2eb","#a6c1ee"],"place":"Café back door","time":"Sat 6:30 am","alt":"A delivery of forty boxes before the café opens.","opts":["Forty boxes. Time to go easy on me.","Forty boxes. Time to blow over.","Forty boxes. Time to get stuck into it."],"ans":2,"answerText":"Forty boxes. Time to get stuck into it."},{"pic":["💸","🙅","🧾","⚠️"],"bg":["#fdfbfb","#ebedee"],"place":"Job ad on Facebook","time":"Sun 9:12 pm","alt":"A job ad: cash only, no payslips, $12 an hour.","opts":["Cash only, $12 an hour? Red flag.","Cash only, $12 an hour? Happy days.","Cash only, $12 an hour? It ticks all the boxes."],"ans":0,"answerText":"Cash only, $12 an hour? Red flag."}],"count":10},{"id":"crew","name":"Crew Chat","type":"react","icon":"crew","group":"Beamish Lane crew ☕","members":"Harry, Anya, Rafi, Daniel, Sari","how":"What is each person doing in the group chat? Tap the right reaction.","unlockNote":"Sari works with Harry, Anya, Rafi and Daniel.","reactions":[["😮","surprised"],["⚠️","warning"],["❓","asking"],["🎉","good news"],["😠","complaining"],["🤗","calming"],["🙏","saying sorry"]],"items":[{"from":"Harry","text":"Happy days, team! Five stars on Google this week.","ans":3},{"from":"Rafi","text":"Something's off with the cool room. It's warm in there.","ans":1},{"from":"Rafi","text":"Daniel copied my accent again. Not funny. Totally out of line.","ans":4},{"from":"Anya","text":"Far out! Forty boxes of milk at six in the morning!","ans":0},{"from":"Daniel","text":"Sorry, Rafi. I was out of line. I'll pull my head in.","ans":6},{"from":"Sari","text":"Can someone give us a rundown on the new lunch menu?","ans":2},{"from":"Anya","text":"Don't stress, Sari. One mistake is nothing. It'll blow over.","ans":5},{"from":"Rafi","text":"Cash only and no payslip at that bakery? Red flag, mate. Don't take it.","ans":1},{"from":"Harry","text":"Happy days! The new coffee machine arrives tomorrow.","ans":3},{"from":"Anya","text":"Is the Christmas roster out yet? When does the pointy end start?","ans":2},{"from":"Harry","text":"Relax, Sari. Everybody puts the soy milk in the wrong fridge once.","ans":5}],"count":11},{"id":"mail","name":"Mail","type":"mail","icon":"mail","how":"Read Harry's email. Is each sentence true, false, or not in the email?","unlockNote":"Harry is the manager of the café.","inbox":[["Harry Park","Your rundown for next week","Great first week, Sari. Here is a quick rundown...",true],["Campsie Library","Free English conversation group","Every Tuesday at 6 pm in the community room...",false],["Fair Work Ombudsman","Pay and conditions: what you need to know","Free advice in your language. Call 13 13 94...",false]],"email":{"from":"Harry Park","to":"Sari Wijaya","subject":"Your rundown for next week","body":["Hi Sari,","Great first week! Here is a quick rundown for next week.","Roster: I divvy up the shifts every Thursday. The roster goes on the staff app by 5 pm. You are on Monday, Tuesday, Thursday and Saturday, 7 am to 1 pm.","Saturdays: They are feral, so Anya will be on the coffee machine and you will be on the counter. Don't worry if it is all over the shop at 11. That is normal.","Pay: You get paid every Friday into your bank account. Your payslip comes by email. Last week's payslip was wrong. Something was off with our new pay system, and there was no Saturday rate. It is fixed now. The extra money will be in your account this Friday.","Christmas: December is the pointy end. We are doing catering for three offices, so everybody will work extra hours.","One more thing. A customer told me Daniel was rude to you on Wednesday. That was out of line, and I have spoken to him. If it happens again, come and see me.","You are doing a great job.","Harry"]},"items":[{"s":"Harry shares out the shifts on Thursdays.","ans":"T"},{"s":"Sari works five days next week.","ans":"F"},{"s":"Sari will make the coffee on Saturdays.","ans":"F"},{"s":"The café is very busy on Saturdays.","ans":"T"},{"s":"Daniel said sorry to Sari.","ans":"N"},{"s":"Sari gets paid every Friday.","ans":"T"},{"s":"Sari's first payslip had a problem.","ans":"T"},{"s":"Sari will get the missing money in cash.","ans":"F"},{"s":"Harry thinks Daniel's behaviour was not acceptable.","ans":"T"},{"s":"Anya is Harry's sister.","ans":"N"},{"s":"The café is doing catering for a wedding in December.","ans":"F"}],"count":11},{"id":"payday","name":"Payday","type":"swipe","icon":"payday","how":"Sari is reading about work and pay. Is each card a red flag, or is it all good?","unlockNote":"Sari checks her payslip every week now.","items":[{"s":"The boss pays cash and gives no payslip.","ans":"red","why":"You should get a payslip every time you are paid."},{"s":"Your payslip comes every pay day by email.","ans":"good","why":"That is how it should work."},{"s":"You write your hours in your phone after every shift.","ans":"good","why":"Your own record helps you check your pay."},{"s":"The manager says new workers never get the Saturday rate.","ans":"red","why":"Weekend rates do not depend on how new you are."},{"s":"The job ad says: unpaid trial for two weeks.","ans":"red","why":"Two weeks of work for no money is not okay."},{"s":"Your payslip shows the hours you really worked.","ans":"good","why":"Check this every week."},{"s":"The boss asks for your bank password to pay you.","ans":"red","why":"Nobody needs your password. Give your BSB and account number only."},{"s":"Your pay is $9 an hour because you are new.","ans":"red","why":"That is far below the legal minimum pay."},{"s":"The roster comes out a few days before your shifts.","ans":"good","why":"You can plan your week."},{"s":"You tell your manager about a mistake in your pay, and he fixes it.","ans":"good","why":"Talk to your manager first. That is the right first step."},{"s":"The boss says: if you ask about pay, you will lose your shifts.","ans":"red","why":"Asking about your pay is your right."},{"s":"You call the Fair Work Ombudsman for free advice and ask for an interpreter.","ans":"good","why":"The advice is free, and they can get an interpreter."}],"count":12},{"id":"clock","name":"Clock","type":"picker","icon":"clock","how":"Each alarm label has a gap. Scroll the wheel to the right word. Then tap Set.","unlockNote":"Sari sets lots of alarms for work and school.","items":[{"time":"5:45","s":"Yesterday Sari ___ it from Harry.","opts":["cops","cop","copped","copping"],"ans":2,"answerText":"copped"},{"time":"6:00","s":"Don't worry. It'll ___ over by Monday.","opts":["blow","blowing","blown","blew"],"ans":0,"answerText":"blow"},{"time":"6:10","s":"The soy milk problem has already ___ over.","opts":["blew","blows","blow","blown"],"ans":3,"answerText":"blown"},{"time":"6:20","s":"Last Thursday Harry ___ up the jobs.","opts":["divvy","divvied","divvies","divvying"],"ans":1,"answerText":"divvied"},{"time":"6:30","s":"Tomorrow we'll ___ stuck into the Christmas orders.","opts":["got","gets","get","getting"],"ans":2,"answerText":"get"},{"time":"6:45","s":"Right now Anya's ___ stuck into the dishes.","opts":["gets","getting","got","get"],"ans":1,"answerText":"getting"},{"time":"7:00","s":"The new roster ___ all the boxes.","opts":["ticking","ticks","tick","ticked off"],"ans":1,"answerText":"ticks"},{"time":"7:15","s":"The old job didn't ___ all the boxes.","opts":["tick","ticking","ticks","ticked"],"ans":0,"answerText":"tick"},{"time":"2:30","s":"On my first day, Harry ___ easy on me.","opts":["went","gone","goes","go"],"ans":0,"answerText":"went"},{"time":"3:00","s":"Yesterday's problem? It ___ what it is.","opts":["was","has been","is","will be"],"ans":2,"answerText":"is"},{"time":"3:15","s":"Daniel ___ his head in after Harry spoke to him.","opts":["pulling","pulls up","pull","pulled"],"ans":3,"answerText":"pulled"},{"time":"9:00","s":"Daniel ___ out of line on Wednesday.","opts":["is","be","were","was"],"ans":3,"answerText":"was"}],"count":12},{"id":"reminders","name":"Reminders","type":"build","icon":"reminders","how":"The words in each reminder are mixed up. Tap them in the right order.","unlockNote":"Sari has a lot to do this week.","items":[{"s":"Ask Harry for a quick rundown of the menu.","words":["Ask","Harry","for","a","quick","rundown","of","the","menu."],"tiles":["menu.","the","a","quick","rundown","for","Harry","Ask","of"]},{"s":"Get stuck into the dishes before the lunch rush.","words":["Get","stuck","into","the","dishes","before","the","lunch","rush."],"tiles":["before","Get","the","dishes","lunch","stuck","rush.","into","the"]},{"s":"Check my payslip because something's off.","words":["Check","my","payslip","because","something's","off."],"tiles":["payslip","Check","something's","off.","my","because"]},{"s":"Divvy up the chores with the kids on Sunday.","words":["Divvy","up","the","chores","with","the","kids","on","Sunday."],"tiles":["on","Divvy","kids","Sunday.","the","up","the","chores","with"]},{"s":"Ask Harry to go easy on me on Saturday.","words":["Ask","Harry","to","go","easy","on","me","on","Saturday."],"tiles":["easy","on","me","to","Saturday.","Ask","go","on","Harry"]},{"s":"Book a babysitter for the pointy end of December.","words":["Book","a","babysitter","for","the","pointy","end","of","December."],"tiles":["the","of","end","for","babysitter","Book","December.","a","pointy"]},{"s":"Tell Kevin to pull his head in at dinner.","words":["Tell","Kevin","to","pull","his","head","in","at","dinner."],"tiles":["Kevin","in","at","pull","head","Tell","to","his","dinner."]},{"s":"Clean the car because it's all over the shop.","words":["Clean","the","car","because","it's","all","over","the","shop."],"tiles":["the","all","shop.","Clean","it's","car","the","because","over"]},{"s":"Call Wen and tell her the job ticks all the boxes.","words":["Call","Wen","and","tell","her","the","job","ticks","all","the","boxes."],"tiles":["the","and","her","Call","Wen","job","boxes.","the","tell","ticks","all"]},{"s":"Stop worrying about Daniel because it will blow over.","words":["Stop","worrying","about","Daniel","because","it","will","blow","over."],"tiles":["will","blow","it","about","because","over.","worrying","Stop","Daniel"]}],"count":10},{"id":"wordup","name":"Word Up","type":"letters","icon":"wordup","how":"Find the missing word. Tap letters. You can make six mistakes.","unlockNote":"Sari plays Word Up on the bus.","items":[{"s":"Saturdays here are ___.","w":"FERAL"},{"s":"Come on, give us a ___.","w":"RUNDOWN"},{"s":"I'm in a good ___ this week.","w":"HEADSPACE"},{"s":"Cash only? That's a red ___.","w":"FLAG"},{"s":"December is the ___ end.","w":"POINTY"},{"s":"The best cook in Sydney? That's a bit of a ___.","w":"STRETCH"},{"s":"Let's ___ up the tips.","w":"DIVVY"},{"s":"The new job ticks all the ___.","w":"BOXES"},{"s":"Don't worry. It'll ___ over.","w":"BLOW"},{"s":"The kitchen's all over the ___.","w":"SHOP"}],"count":10},{"id":"roster","name":"Roster","type":"roster","icon":"roster","code":"8163","how":"Work with a partner. Each person reads a different card. Talk and agree a shift swap.","unlockNote":"Sari and Anya swapped shifts. Harry said yes.","cards":{"A":{"who":"Student A: Sari","lines":["Mia has a school concert on Thursday at 11 am. You really want to go.","You work Thursday 7 am to 1 pm. You need someone to take this shift.","Wednesday is your day off. You are free all day.","You cannot work on Friday morning. You have English class.","Ask Anya to swap. Then decide how you will tell Harry."],"say":["far out","go easy on me","the pointy end","put it this way","happy days"]},"B":{"who":"Student B: Anya","lines":["You have a dentist appointment on Wednesday at 10 am.","You work Wednesday 7 am to 1 pm. You need someone to take this shift.","You have no shift on Thursday. You are free all day.","You cannot work late on Saturday. You have a family dinner.","Listen to Sari. Agree a swap. Then decide how you will tell Harry."],"say":["give us a rundown","it is what it is","a bit of a stretch","ticks all the boxes","divvy up"]},"C":{"who":"If there are three of you: Harry","lines":["You are the manager. Sari and Anya come to you about a swap.","You want every shift covered. Thursday is a big catering day.","Ask questions. Then say yes or no."],"say":["divvy up","get stuck into it","blow over"]}},"solution":"Anya works Sari's Thursday shift (7 am to 1 pm). Sari works Anya's Wednesday shift (7 am to 1 pm). They tell Harry together.","count":10}]};
+const APPS = DATA.apps, META = DATA.meta;
+const BYID = Object.fromEntries(APPS.map(a => [a.id, a]));
+const TEXT_SIZES = [18, 21, 25];
+const DAYS = {Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday',Fri:'Friday',Sat:'Saturday',Sun:'Sunday'};
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------------- storage ---------------- */
+let STORE_OK = false;
+function storageOK(){ try{ const k='__t'; localStorage.setItem(k,'1'); localStorage.removeItem(k); return true; }catch(e){ return false; } }
+STORE_OK = storageOK();
+function fresh(){ return {v:1, introSeen:false, unlocked:false, apps:{}, done:{}, ts:1, finished:false, announced:{}}; }
+let S = fresh();
+try{ if(STORE_OK){ const raw = localStorage.getItem(META.storageKey); if(raw){ const o = JSON.parse(raw); if(o && o.v===1) S = Object.assign(fresh(), o); } } }catch(e){}
+function save(){ if(!STORE_OK) return; try{ localStorage.setItem(META.storageKey, JSON.stringify(S)); }catch(e){} }
+setInterval(save, 1500);
+window.addEventListener('pagehide', save);
+document.addEventListener('visibilitychange', () => { if(document.hidden) save(); });
+
+const ui = { screen:'lock', app:null, pass:'', kp:null, toast:null, welcome:false, notifQ:[], setReset:false };
+const hadProgress = Object.keys(S.apps).length > 0 || S.unlocked;
+
+/* ---------------- unlock logic ---------------- */
+function idx(id){ return APPS.findIndex(a => a.id === id); }
+function isOpen(id){ return !!BYID[id]; }   // every app is open from the start: students choose the order
+function blocker(id){ const i = idx(id); for(let k=0;k<i;k++){ const a=APPS[k]; if(!a.code && !S.done[a.id]) return a; } return null; }
+function doneCount(){ return APPS.filter(a => S.done[a.id]).length; }
+function st(app){ return S.apps[app.id] || (S.apps[app.id] = {i:0, first:0, miss:0, fb:null, wr:[]}); }
+function nextApp(){ return APPS.find(a => !S.done[a.id]); }
+function leftCount(){ return APPS.length - doneCount(); }
+
+/* ---------------- icons ---------------- */
+let GID = 0;
+const G = (a,b) => { const id = 'ig' + (++GID); return `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="100" height="100" fill="url(#${id})"/>`; };
+function icon(name){
+  const s = (inner) => `<svg viewBox="0 0 100 100" aria-hidden="true">${inner}</svg>`;
+  switch(name){
+    case 'messages': return s(G('#67f07c','#0fbb2c')+`<path d="M50 24c-17 0-30 10.5-30 23.5 0 7.4 4.3 14 11 18.3-.6 4.3-3 8.4-6.5 11 7 .4 12.8-2.2 16.4-5.4 2.9.7 5.9 1.1 9.1 1.1 17 0 30-10.5 30-23.5S67 24 50 24z" fill="#fff"/>`);
+    case 'notes': return s(`<rect width="100" height="100" fill="#fff"/><rect width="100" height="28" fill="#ffd60a"/><g stroke="#d1d1d6" stroke-width="2.5"><path d="M14 48h72M14 62h72M14 76h72"/></g><path d="M14 40h50" stroke="#c7c7cc" stroke-width="4" stroke-linecap="round"/>`);
+    case 'calendar': return s(`<rect width="100" height="100" fill="#fff"/><text x="50" y="30" font-size="16" font-weight="600" text-anchor="middle" fill="#ff3b30" font-family="-apple-system,Segoe UI,Roboto,Arial">MON</text><text x="50" y="80" font-size="50" font-weight="300" text-anchor="middle" fill="#111" font-family="-apple-system,Segoe UI,Roboto,Arial">16</text>`);
+    case 'voicemail': return s(G('#5e5ce6','#3634a3')+`<g fill="none" stroke="#fff" stroke-width="7"><circle cx="32" cy="52" r="13"/><circle cx="68" cy="52" r="13"/></g><path d="M32 65h36" stroke="#fff" stroke-width="7"/>`);
+    case 'phone': return s(G('#67f07c','#0fbb2c')+`<path d="M36 26c2-1 5-1 6 2l5 11c1 2 0 4-1 5l-5 4c3 7 8 12 15 15l4-5c1-1 3-2 5-1l11 5c3 1 3 4 2 6l-3 6c-2 3-6 5-10 4-20-5-34-19-39-39-1-4 1-8 4-10z" fill="#fff"/>`);
+    case 'translate': return s(G('#2b2b2f','#0c0c0e')+`<rect x="16" y="20" width="40" height="34" rx="8" fill="#fff"/><text x="36" y="45" font-size="24" font-weight="700" text-anchor="middle" fill="#111" font-family="Arial">A</text><rect x="44" y="46" width="40" height="34" rx="8" fill="#0a84ff"/><text x="64" y="71" font-size="21" font-weight="700" text-anchor="middle" fill="#fff" font-family="Arial">Oi</text>`);
+    case 'photos': { let p=''; const c=['#ff9f0a','#ffd60a','#30d158','#64d2ff','#0a84ff','#bf5af2','#ff375f','#ff453a']; for(let k=0;k<8;k++) p+=`<ellipse cx="50" cy="31" rx="9" ry="17" fill="${c[k]}" opacity=".9" transform="rotate(${k*45} 50 50)"/>`; return s(`<rect width="100" height="100" fill="#fff"/>`+p); }
+    case 'crew': return s(G('#3ad06a','#128c4a')+`<path d="M50 20c-17 0-30 12-30 27 0 5 1.5 9.6 4 13.5L20 78l18-5c3.6 1.6 7.6 2.5 12 2.5 17 0 30-12 30-27S67 20 50 20z" fill="#fff"/><circle cx="41" cy="44" r="6" fill="#128c4a"/><circle cx="59" cy="44" r="6" fill="#128c4a"/><path d="M31 61c2-6 6-9 10-9s8 3 10 9zM49 61c2-6 6-9 10-9s8 3 10 9z" fill="#128c4a"/>`);
+    case 'mail': return s(G('#40a9ff','#0a63d8')+`<rect x="18" y="30" width="64" height="44" rx="6" fill="#fff"/><path d="M20 33l30 22 30-22" fill="none" stroke="#0a63d8" stroke-width="4"/>`);
+    case 'payday': return s(G('#1f6f4f','#0b3324')+`<rect x="18" y="30" width="64" height="42" rx="7" fill="#e9fff4"/><rect x="18" y="38" width="64" height="8" fill="#1f6f4f"/><text x="64" y="66" font-size="18" font-weight="800" text-anchor="middle" fill="#1f6f4f" font-family="Arial">$</text><rect x="25" y="56" width="22" height="5" rx="2" fill="#9bc7b4"/>`);
+    case 'clock': return s(`<rect width="100" height="100" fill="#000"/><circle cx="50" cy="50" r="36" fill="#fff"/><g stroke="#111" stroke-width="2.5">${[...Array(12)].map((_,k)=>`<path d="M50 18v5" transform="rotate(${k*30} 50 50)"/>`).join('')}</g><path d="M50 50V30M50 50l14 9" stroke="#111" stroke-width="4" stroke-linecap="round"/><path d="M50 50l-12 18" stroke="#ff9f0a" stroke-width="2"/><circle cx="50" cy="50" r="3" fill="#ff9f0a"/>`);
+    case 'reminders': return s(`<rect width="100" height="100" fill="#fff"/>${[['#0a84ff',28],['#ff3b30',50],['#ff9f0a',72]].map(([c,y])=>`<circle cx="26" cy="${y}" r="7" fill="${c}"/><rect x="40" y="${y-3}" width="40" height="6" rx="3" fill="#d1d1d6"/>`).join('')}`);
+    case 'wordup': return s(G('#ff9a3d','#e8463f')+`<rect x="14" y="30" width="22" height="26" rx="5" fill="#fff"/><rect x="39" y="30" width="22" height="26" rx="5" fill="#fff"/><rect x="64" y="30" width="22" height="26" rx="5" fill="#ffd60a"/><text x="25" y="50" font-size="17" font-weight="800" text-anchor="middle" fill="#e8463f" font-family="Arial">W</text><text x="50" y="50" font-size="17" font-weight="800" text-anchor="middle" fill="#e8463f" font-family="Arial">O</text><text x="75" y="50" font-size="17" font-weight="800" text-anchor="middle" fill="#7a3c00" font-family="Arial">?</text><text x="50" y="80" font-size="14" font-weight="800" text-anchor="middle" fill="#fff" font-family="Arial">UP</text>`);
+    case 'roster': return s(G('#6e5ce6','#3a2c94')+`<rect x="18" y="22" width="64" height="58" rx="7" fill="#fff"/><rect x="18" y="22" width="64" height="13" rx="6" fill="#ffd60a"/>${[0,1,2].map(r=>[0,1,2,3].map(c=>`<rect x="${24+c*14}" y="${41+r*12}" width="10" height="8" rx="2" fill="${(r+c)%3===0?'#6e5ce6':'#d9d4fb'}"/>`).join('')).join('')}`);
+    case 'settings': return s(G('#a2a2a8','#68686e')+`<g transform="translate(50 50)"><g fill="#3b3b40">${[...Array(10)].map((_,k)=>`<rect x="-5" y="-33" width="10" height="14" rx="2" transform="rotate(${k*36})"/>`).join('')}</g><circle r="24" fill="#3b3b40"/><circle r="12" fill="#a2a2a8"/></g>`);
+  }
+  return s('<rect width="100" height="100" fill="#888"/>');
+}
+const ICON_SM = {
+  check:'<svg width="22" height="22" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  checkG:'<svg width="18" height="18" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#1f9e45" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  lock:'<svg width="26" height="26" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5" fill="#fff"/><path d="M8 10.5V8a4 4 0 018 0v2.5" fill="none" stroke="#fff" stroke-width="2.4"/></svg>',
+  back:'<svg width="13" height="22" viewBox="0 0 13 22"><path d="M11 2L2 11l9 9" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  phone:'<svg width="34" height="34" viewBox="0 0 100 100"><path d="M36 26c2-1 5-1 6 2l5 11c1 2 0 4-1 5l-5 4c3 7 8 12 15 15l4-5c1-1 3-2 5-1l11 5c3 1 3 4 2 6l-3 6c-2 3-6 5-10 4-20-5-34-19-39-39-1-4 1-8 4-10z" fill="#fff"/></svg>',
+};
+
+/* ---------------- status bar ---------------- */
+function fsIcon(on){
+  return on ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 3v6H3M15 3v6h6M9 21v-6H3M15 21v-6h6"/></svg>'
+            : '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg>';
+}
+function isFS(){ return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+function clock(){ const d = new Date(); let h = d.getHours() % 12 || 12; return h + ':' + String(d.getMinutes()).padStart(2,'0'); }
+function drawStatus(){
+  const col = 'currentColor';
+  $('#status').innerHTML = `<span class="time">${clock()}</span><span class="gap"></span>
+  <span class="ic" aria-hidden="true">
+   <svg width="19" height="12" viewBox="0 0 19 12"><rect x="0" y="8" width="3.2" height="4" rx="1" fill="${col}"/><rect x="5" y="5.5" width="3.2" height="6.5" rx="1" fill="${col}"/><rect x="10" y="3" width="3.2" height="9" rx="1" fill="${col}"/><rect x="15" y="0" width="3.2" height="12" rx="1" fill="${col}"/></svg>
+   <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.2c2.6 0 5 1 6.8 2.7l1.2-1.3C14.4 1.6 11.6.4 8.5.4S2.6 1.6.5 3.6l1.2 1.3C3.5 3.2 5.9 2.2 8.5 2.2zm0 3.6c1.6 0 3 .6 4.2 1.6l1.2-1.3c-1.5-1.3-3.4-2.1-5.4-2.1S4.6 4.8 3.1 6.1l1.2 1.3c1.2-1 2.6-1.6 4.2-1.6zm0 3.5c-.7 0-1.3.3-1.8.7l1.8 2 1.8-2c-.5-.4-1.1-.7-1.8-.7z" fill="${col}"/></svg>
+   <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="${col}" opacity=".5"/><rect x="2" y="2" width="16" height="9" rx="2" fill="${col}"/><path d="M25 4.5v4c.8-.3 1.3-1.1 1.3-2s-.5-1.7-1.3-2z" fill="${col}" opacity=".5"/></svg>
+  </span>
+  <button id="fsbtn" data-a="fs" aria-label="${isFS()?'Leave full screen':'Full screen'}">${fsIcon(isFS())}</button>`;
+}
+setInterval(() => { const t = document.querySelector('#status .time'); if(t) t.textContent = clock(); }, 10000);
+['fullscreenchange','webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, () => { drawStatus(); if(ui.app==='settings' || ui.screen==='settings') render(); }));
+
+/* ---------------- full screen ---------------- */
+const UA = navigator.userAgent;
+const IS_IOS = /iPad|iPhone|iPod/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_ANDROID = /Android/i.test(UA);
+function canFS(){ const d = document.documentElement; return !!(d.requestFullscreen || d.webkitRequestFullscreen) && !/iPhone|iPod/.test(UA); }
+function enterFS(){ const d = document.documentElement; try{ const p = (d.requestFullscreen ? d.requestFullscreen({navigationUI:'hide'}) : d.webkitRequestFullscreen()); if(p && p.catch) p.catch(() => {}); }catch(e){} }
+function exitFS(){ try{ const p = (document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen()); if(p && p.catch) p.catch(()=>{}); }catch(e){} }
+function toggleFS(){
+  if(isFS()){ exitFS(); return; }
+  if(canFS()){ enterFS(); return; }
+  sheet(`<h3>Full screen on iPhone</h3><p>iPhone cannot go full screen from Safari. Do this once:</p>
+   <ol><li>Tap the <b>Share</b> button <svg width="18" height="20" viewBox="0 0 18 22" style="vertical-align:-3px"><path d="M9 1v13M4.5 5.5L9 1l4.5 4.5M3 9H1.5v12h15V9H15" fill="none" stroke="#0a6fe0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> at the bottom of Safari.</li>
+   <li>Scroll down. Tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>.</li><li>Open <b>Sari's Phone</b> from your home screen. It opens full screen.</li></ol>
+   <p>Your progress is saved.</p><button class="bigbtn" data-a="close">OK</button>`);
+}
+
+/* ---------------- overlays ---------------- */
+function sheet(html){ const o = $('#over'); o.innerHTML = `<div class="scrim" data-a="close"></div><div class="sheet" role="dialog"><div class="grab"></div>${html}</div>`; o.classList.add('show'); }
+function alertBox(title, text, btns){ const o = $('#over'); o.innerHTML = `<div class="scrim"></div><div class="alert" role="alertdialog"><h3>${title}</h3><p>${text}</p><div class="btns">${btns || '<button data-a="close">OK</button>'}</div></div>`; o.classList.add('show'); }
+function closeOver(){ const o = $('#over'); o.classList.remove('show'); o.innerHTML=''; }
+let toastT;
+function toast(msg){ let t = document.querySelector('.toast'); if(!t){ t = document.createElement('div'); t.className='toast'; t.setAttribute('role','status'); $('#screen').appendChild(t); } t.textContent = msg; clearTimeout(toastT); toastT = setTimeout(() => t.remove(), 2600); }
+let notifBusy = false;
+function notify(app, title, body){ ui.notifQ.push({app, title, body}); if(!notifBusy) showNotif(); }
+function showNotif(){
+  const n = ui.notifQ.shift(); if(!n){ notifBusy=false; return; }
+  const cur = BYID[ui.app];
+  const okHere = ui.screen === 'home' || (ui.screen === 'app' && cur && ui.app !== n.app && S.done[ui.app] && !st(cur).replay);
+  if(!okHere){ showNotif(); return; }
+  notifBusy = true;
+  const el = $('#notif');
+  el.innerHTML = `<button class="ncard" data-a="open" data-v="${n.app}"><span class="ni">${icon(BYID[n.app] ? BYID[n.app].icon : 'settings')}</span><span style="flex:1"><span class="nt">${esc(n.title)}<span>now</span></span><span class="nb" style="display:block">${esc(n.body)}</span></span></button>`;
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => { el.classList.remove('show'); setTimeout(showNotif, 400); }, 3600);
+}
+
+/* ---------------- render ---------------- */
+let lastKey = '';
+function render(opts){
+  opts = opts || {};
+  document.documentElement.style.setProperty('--fs', TEXT_SIZES[S.ts] + 'px');
+  const screen = $('#screen');
+  const v = $('#view');
+  const oldBody = v.querySelector('.body,.hscroll');
+  const oldScroll = oldBody ? oldBody.scrollTop : 0;
+  let html = '', light = true, key = ui.screen;
+  if(ui.screen === 'lock'){ html = lockHTML(); light = false; }
+  else if(ui.screen === 'pass'){ html = keypadHTML('Enter Passcode', '', ui.pass, true); light = false; }
+  else if(ui.screen === 'home'){ html = homeHTML(); light = false; }
+  else if(ui.screen === 'final'){ html = finalHTML(); light = false; }
+  else if(ui.screen === 'ending-call'){ html = endingCallHTML(); light = false; }
+  else if(ui.screen === 'app'){ const a = BYID[ui.app] || {id:'settings'}; const r = appHTML(a); html = r.html; light = r.light !== false; key = 'app:' + a.id + ':' + (r.key || ''); }
+  screen.classList.toggle('light', light);
+  v.innerHTML = html;
+  drawStatus();
+  const nb = v.querySelector('.body,.hscroll');
+  if(nb){
+    if(opts.keep !== false && key === lastKey) nb.scrollTop = oldScroll;
+    const f = v.querySelector('.js-focus');
+    if(opts.bottom) nb.scrollTop = nb.scrollHeight;
+    else if(f && (key !== lastKey || opts.focus)) f.scrollIntoView({block:'center'});
+  }
+  lastKey = key;
+}
+
+/* lock screen */
+function lockHTML(){
+  const d = new Date();
+  const date = d.toLocaleDateString('en-AU', {weekday:'long', day:'numeric', month:'long'});
+  const intro = !S.introSeen;
+  if(intro) setTimeout(showIntro, 50);
+  return `<div class="page lock wall">
+   <div class="ldate">${esc(date)}</div><div class="ltime">${clock()}</div>
+   <div class="nlist">
+    <div class="ncard"><span class="ni">${icon('messages')}</span><span style="flex:1"><span class="nt">Budi<span>8:02 am</span></span><span class="nb">Did you leave your phone on the train? 😅</span></span></div>
+    <div class="ncard"><span class="ni">${icon('roster')}</span><span style="flex:1"><span class="nt">Roster<span>yesterday</span></span><span class="nb">Your shifts for next week are ready.</span></span></div>
+   </div>
+   <div class="found">If found, please call Budi on 0412 555 018</div>
+   <button class="open" data-a="lock-open">Tap to open</button>
+   <span class="torch l" aria-hidden="true"><svg width="18" height="26" viewBox="0 0 18 26"><path d="M3 1h12l-2 7v16H5V8z" fill="none" stroke="#fff" stroke-width="2"/></svg></span>
+   <span class="torch r" aria-hidden="true"><svg width="26" height="22" viewBox="0 0 26 22"><rect x="1" y="5" width="24" height="16" rx="3" fill="none" stroke="#fff" stroke-width="2"/><circle cx="13" cy="13" r="5" fill="none" stroke="#fff" stroke-width="2"/><path d="M8 5l2-4h6l2 4" fill="none" stroke="#fff" stroke-width="2"/></svg></span>
+  </div>`;
+}
+function showIntro(){
+  if(S.introSeen || ui.screen !== 'lock') return;
+  sheet(`<h3>📱 You found a phone!</h3>
+   <p>It was on a seat on the train at Campsie station.</p>
+   <p>Unlock the phone. Open the apps in any order. Each app has a task about the words from <b>First shifts</b>.</p>
+   <p>Find out whose phone it is. Then help get it back.</p>
+   <p style="color:#555">Your progress saves on this phone. Tap the corners icon at the top for full screen.</p>
+   <button class="bigbtn" data-a="intro-start">Start</button>`);
+}
+
+/* keypad (passcode + teacher code) */
+function keypadHTML(title, sub, val, isPass){
+  const k = (n, l) => `<button class="key" data-a="kp" data-v="${n}" aria-label="${n}">${n}<small>${l||'&nbsp;'}</small></button>`;
+  return `<div class="page pad ${isPass ? 'wall' : 'solid'}">
+   <div class="ptxt"><div>${isPass ? '<svg width="26" height="30" viewBox="0 0 24 28"><rect x="3" y="12" width="18" height="14" rx="3" fill="#fff"/><path d="M7 12V8a5 5 0 0110 0v4" fill="none" stroke="#fff" stroke-width="2.4"/></svg>' : ''}</div>
+   <h2>${title}</h2>${sub ? `<div class="psub">${sub}</div>` : ''}
+   <div class="dots" id="dots">${[0,1,2,3].map(i => `<i class="${i < val.length ? 'on' : ''}"></i>`).join('')}</div></div>
+   <div>
+   <div class="keys">${k(1)}${k(2,'ABC')}${k(3,'DEF')}${k(4,'GHI')}${k(5,'JKL')}${k(6,'MNO')}${k(7,'PQRS')}${k(8,'TUV')}${k(9,'WXYZ')}<span></span>${k(0)}<button class="key ghost" data-a="kp-del" aria-label="Delete">Delete</button></div>
+   <div class="links">${isPass ? '<button data-a="hint">Forgot passcode?</button><button data-a="pass-cancel">Cancel</button>' : '<button data-a="kp-cancel">Back</button><span></span>'}</div>
+   </div></div>`;
+}
+
+/* home */
+function homeHTML(){
+  const n = doneCount(), total = APPS.length, pct = n/total;
+  const d = new Date();
+  const C = 2*Math.PI*36;
+  const nx = nextApp();
+  let wb = '';
+  if(ui.welcome){
+    const started = APPS.find(a => !S.done[a.id] && S.apps[a.id] && S.apps[a.id].i > 0);
+    const go = started || null;
+    wb = `<button class="wb" data-a="${go ? 'open' : 'wb-close'}" data-v="${go ? go.id : ''}"><span class="ni" style="width:38px;height:38px;border-radius:10px;overflow:hidden;flex:none">${icon(go ? go.icon : 'settings')}</span>
+      <span><b>Welcome back! 👋</b><span>${go ? `Keep going: ${esc(go.name)} (${st(go).i} of ${go.count} done)` : (leftCount() ? `${leftCount()} apps to go. Choose any app.` : 'All apps are done.')}</span></span><span class="x">${go ? 'Open' : 'OK'}</span></button>`;
+  }
+  const dockIds = ['phone','messages','mail','settings'];
+  const gridIds = APPS.map(a => a.id).filter(id => !dockIds.includes(id));
+  const tile = id => {
+    if(id === 'settings') return `<button class="app" data-a="open" data-v="settings"><span class="icon">${icon('settings')}</span><span class="lbl">Settings</span></button>`;
+    const a = BYID[id], open = isOpen(id), done = S.done[id], s = S.apps[id];
+    let b = '';
+    if(done) b = `<span class="badge ok">${ICON_SM.check.replace('22','16').replace('22','16')}</span>`;
+    else if(open && s && s.i > 0) b = `<span class="badge">${a.count - s.i}</span>`;
+    else if(open && a.code) b = `<span class="badge">1</span>`;
+    return `<button class="app ${open ? '' : 'locked'} " data-a="open" data-v="${id}" aria-label="${esc(a.name)}${open ? '' : ' (locked)'}${done ? ' (done)' : ''}"><span class="icon">${icon(a.icon)}${open ? '' : `<span class="lockb">${ICON_SM.lock}</span>`}</span>${b}<span class="lbl">${esc(a.name)}</span></button>`;
+  };
+  return `<div class="page home wall">
+   <div class="hscroll">
+   ${wb}
+   <div class="widget">
+     <div><div class="wd">${esc(d.toLocaleDateString('en-AU',{weekday:'long'}))}</div><div class="wn">${d.getDate()} ${esc(d.toLocaleDateString('en-AU',{month:'short'}))}</div><div class="ww">☀️ Campsie 24°<br>${n === total ? 'All apps done! 🎉' : (leftCount() + ' apps to go')}</div></div>
+     <div class="ring" role="img" aria-label="${n} of ${total} apps done"><svg width="86" height="86" viewBox="0 0 86 86"><circle cx="43" cy="43" r="36" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="9"/><circle cx="43" cy="43" r="36" fill="none" stroke="#ffd60a" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct)}"/></svg><b>${n}/${total}<small>apps</small></b></div>
+   </div>
+   <div class="grid">${gridIds.map(tile).join('')}</div>
+   <div class="pdots"><i></i><i></i></div>
+   </div>
+   <div class="dock">${dockIds.map(tile).join('')}</div>
+  </div>`;
+}
+
+/* ---------------- app shells ---------------- */
+function navHTML(a, title, sub, right){
+  return `<div class="nav"><button class="back" data-a="home">${ICON_SM.back} Home</button><div class="title">${title}${sub ? `<small>${sub}</small>` : ''}</div>${right !== undefined ? right : `<span class="prog">${Math.min(st(a).i, a.count)}/${a.count}</span>`}</div>`;
+}
+function howHTML(a){ return `<div class="how"><b>Task:</b> ${esc(a.how)}</div>`; }
+function fbHTML(s, nextLabel){
+  if(!s.fb) return '';
+  const f = s.fb;
+  const head = f.k === 'ok' ? '✅ Correct!' : f.k === 'no' ? '🤔 Not quite. Try again.' : '💡 Here is the answer';
+  const body = (f.k === 'rev' && f.ans ? `<span style="display:block;font-weight:700;margin-bottom:2px">${esc(f.ans)}</span>` : '') + (f.why ? esc(f.why) : '');
+  return `<div class="fb ${f.k === 'ok' ? 'ok' : f.k === 'no' ? 'no' : 'rev'}" role="status"><b>${head}</b>${body}</div>
+   ${f.k !== 'no' ? `<button class="nextbtn" data-a="next">${nextLabel || 'Next'} ›</button>` : ''}`;
+}
+function appHTML(a){
+  if(a.id === 'settings') return settingsHTML();
+  const s = st(a);
+  if(S.done[a.id] && !s.replay) return completeHTML(a);
+  const f = RENDER[a.type];
+  return f(a, s);
+}
+
+/* judge an answer */
+function judge(a, ok, ans, why, hint){
+  const s = st(a);
+  if(ok){ if(!s.miss) s.first++; s.fb = {k:'ok', why}; s.solved = true; }
+  else{ s.miss++; if(s.miss >= 2){ s.fb = {k:'rev', ans, why}; s.solved = true; } else s.fb = {k:'no', why: hint || 'Read it again and choose again.'}; }
+  save(); render({focus:true});
+}
+function resetItem(s){ s.miss = 0; s.fb = null; s.solved = false; s.wr = []; }
+function advance(a){
+  const s = st(a);
+  s.i++; resetItem(s);
+  if(s.i >= a.count) completeApp(a); else { save(); render({focus:true}); }
+}
+function completeApp(a){
+  const s = st(a);
+  const wasDone = !!S.done[a.id];
+  S.done[a.id] = true;
+  s.best = Math.max(s.best || 0, s.first);
+  s.replay = false;
+  s.newly = [];
+  save(); render();
+}
+function completeHTML(a){
+  const s = st(a), best = s.best != null ? s.best : s.first;
+  const n = Math.round(5 * best / a.count);
+  const stars = '★'.repeat(n) + '☆'.repeat(5 - n);
+  const newly = (s.newly || []).map(id => `<span>${esc(BYID[id].name)}</span>`).join('');
+  return { html: `<div class="page">${navHTML(a, esc(a.name), '', '<span class="prog">Done</span>')}
+   <div class="body done">
+    <div class="big">${ICON_SM.checkG.replace(/18/g,'54')}</div>
+    <h2>${esc(a.name)}: done!</h2>
+    <div class="stars" aria-label="${n} of 5 stars">${stars}</div>
+    <div class="score">${a.code ? 'Your teacher checked this task.' : `Right the first time: ${best} of ${a.count}`}</div>
+    <div class="found"><b>What you found out</b>${esc(a.unlockNote)}</div>
+    <div class="score" style="margin-top:10px">${leftCount() ? `${leftCount()} apps to go. Choose any app on the Home screen.` : 'All 14 apps are done! Go to Home.'}</div>
+    <button class="bigbtn" data-a="home">Back to Home</button>
+    ${a.code ? '' : `<button class="bigbtn grey" data-a="replay" data-v="${a.id}">Do it again</button>`}
+   </div></div>`, key:'done' };
+}
+
+/* ---------------- renderers by type ---------------- */
+const RENDER = {};
+
+RENDER.chat = (a, s) => {
+  const it = a.items[s.i];
+  let t = '<div class="thread"><div class="stamp">Monday 6:12 pm</div>';
+  for(let k = 0; k < s.i; k++){ t += `<div class="b them">${esc(a.items[k].them)}</div><div class="b me">${esc(a.items[k].opts[a.items[k].ans])}</div>`; }
+  t += `<div class="b them ${s.solved ? '' : 'cur js-focus'}">${esc(it.them)}</div>`;
+  if(s.solved) t += `<div class="b me js-focus">${esc(it.opts[it.ans])}</div>`;
+  else t += `<div class="typing" aria-hidden="true"><i></i><i></i><i></i></div>`;
+  t += '</div>';
+  const opts = s.solved ? '' : it.opts.map((o, k) => `<button class="opt ${s.wr.includes(k) ? 'wrong' : ''}" data-a="chat" data-v="${k}" ${s.wr.includes(k) ? 'disabled' : ''}>${esc(o)}</button>`).join('');
+  return { html: `<div class="page">
+   <div class="chathead"><button class="back" style="min-height:44px;display:flex;align-items:center;gap:2px;color:#007aff" data-a="home">${ICON_SM.back} Home</button><div class="av">B</div><div class="nm">Budi ❤️</div><span class="prog pill">${s.i}/${a.count}</span></div>
+   <div class="body">${t}</div>
+   <div class="foot">${s.solved ? '' : `<h4>Choose Sari's reply</h4>`}${opts}${fbHTML(s)}</div></div>`, key: 'c' };
+};
+
+RENDER.tapword = (a, s) => {
+  let lines = '';
+  const show = (it) => it.text.split(' ').map((w, k) => k === it.idx ? `<s>${esc(w)}</s><ins>${esc(it.right)}</ins>` : esc(w)).join(' ');
+  for(let k = 0; k < s.i; k++) lines += `<div class="nline">${show(a.items[k])}</div>`;
+  const it = a.items[s.i];
+  if(s.solved) lines += `<div class="nline cur js-focus">${show(it)}</div>`;
+  else lines += `<div class="nline cur js-focus">${it.text.split(' ').map((w, k) => `<button class="w ${s.wr.includes(k) ? 'bad' : ''}" data-a="tw" data-v="${k}">${esc(w)}</button>`).join(' ')}</div>`;
+  for(let k = s.i + 1; k < a.items.length; k++) lines += `<div class="nline" style="color:#bbb">• • •</div>`;
+  return { html: `<div class="page">${navHTML(a, 'Notes')}
+   <div class="body">${howHTML(a)}<div class="notepage"><h2>${esc(a.noteTitle)}</h2><div class="nd">Edited this week</div>${lines}</div></div>
+   ${s.fb ? `<div class="foot">${fbHTML(s)}</div>` : ''}</div>`, key: 'n' };
+};
+
+RENDER.calendar = (a, s) => {
+  if(s.day == null) s.day = 0;
+  const it = a.items[s.i], wd = a.week[s.day];
+  const wk = a.week.map((d, k) => `<button class="day ${k === s.day ? 'sel' : ''}" data-a="cal-day" data-v="${k}" aria-pressed="${k === s.day}"><span class="dn">${d.d}</span><span class="dd">${d.n}</span><span class="dot"></span></button>`).join('');
+  const ev = wd.ev.map(e => `<div class="ev"><i></i><span class="et">${e[0] ? esc(e[0]) : 'all day'}</span><span>${esc(e[1])}</span></div>`).join('');
+  return { html: `<div class="page" style="background:#f7f7f9">${navHTML(a, 'Calendar')}
+   <div class="body">
+    <div class="calq"><div class="qn">Question ${s.i + 1} of ${a.count}</div><div class="qt">${esc(it.q)}</div></div>
+    <div class="month">November <span>2026</span></div>
+    <div class="week">${wk}</div>
+    <div class="agenda"><h5>${DAYS[wd.d]} ${wd.n} November</h5>${ev}</div>
+   </div>
+   <div class="foot">${s.solved ? '' : `<button class="nextbtn" style="margin-top:0;background:#d92d20" data-a="cal-ans">Choose ${DAYS[wd.d]}</button>`}${fbHTML(s)}</div></div>`, key: 'cal' };
+};
+
+RENDER.voicemail = (a, s) => {
+  if(s.m == null){ s.m = 0; s.g = 0; }
+  if(s.open == null){
+    const rows = a.msgs.map((m, k) => {
+      const done = k < s.m, open = k <= s.m;
+      return `<button class="vrow" data-a="vm-open" data-v="${k}" ${open ? '' : 'disabled'}><span class="vd ${done ? 'done' : ''}"></span><span><b>${esc(m.from)}</b><span>${esc(m.when)}</span></span><span class="vr">${m.dur}<br>${done ? '✓ done' : open ? 'New' : '🔒'}</span></button>`;
+    }).join('');
+    return { html: `<div class="page">${navHTML(a, 'Voicemail')}<div class="body">${howHTML(a)}<div class="vlist">${rows}</div></div></div>`, key: 'vl' };
+  }
+  const m = a.msgs[s.open], cur = s.open === s.m;
+  const filledTo = cur ? s.g + (s.solved ? 1 : 0) : m.gaps.length;
+  const tx = m.parts.map(p => {
+    if(p.t) return esc(p.t);
+    if(p.gap < filledTo) return `<span class="gapw fill">${esc(m.gaps[p.gap])}</span>`;
+    if(p.gap === s.g && cur) return `<span class="gapw cur js-focus" aria-label="gap">${'_'.repeat(6)}</span>`;
+    return `<span class="gapw">${'_'.repeat(6)}</span>`;
+  }).join('');
+  const used = m.gaps.slice(0, filledTo);
+  const bank = m.bank.map((w, k) => {
+    const isUsed = used.includes(w); const bad = cur && s.wr.includes(k);
+    return `<button class="chip ${bad ? 'bad' : ''}" data-a="vm-chip" data-v="${k}" ${isUsed || s.solved || !cur ? 'disabled' : ''}>${esc(w)}</button>`;
+  }).join('');
+  const bars = Array.from({length: 38}, (_, k) => `<i style="height:${20 + Math.round(70 * Math.abs(Math.sin(k * 1.7 + s.open)))}%"></i>`).join('');
+  const finished = cur && s.g >= m.gaps.length;
+  return { html: `<div class="page"><div class="nav"><button class="back" data-a="vm-list">${ICON_SM.back} Voicemail</button><div class="title">${esc(m.from)}<small>${esc(m.when)}</small></div><span class="prog">${s.i}/${a.count}</span></div>
+   <div class="body"><div class="vmsg"><div class="vplay"><button data-a="vm-play" aria-label="Play">▶</button><span>${m.dur}</span></div><div class="wave">${bars}</div>
+   <div class="tx"><span class="tl">Transcript</span>${tx}</div></div></div>
+   <div class="foot">${cur && !finished ? `${s.solved ? '' : '<h4>Tap the words</h4>'}<div class="chips">${bank}</div>` : ''}${cur ? fbHTML(s) : ''}${!cur ? '<button class="nextbtn" data-a="vm-list">Back to Voicemail</button>' : ''}</div></div>`, key: 'vm' + s.open };
+};
+
+RENDER.call = (a, s) => {
+  if(!s.ticks) s.ticks = a.items.map(() => false);
+  if(!s.phase) s.phase = 'ring';
+  if(s.phase === 'ring') return { html: `<div class="page call"><div class="cav">W</div><div class="cn">${esc(a.caller)}</div><div class="cs">mobile · calling…</div>
+    <div class="how" style="background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.25);margin:24px 20px 0">${esc(a.how)}</div>
+    <div class="cbtns"><button class="cb dec" data-a="call-dec"><span>${ICON_SM.phone.replace('<path','<path transform="rotate(135 50 50)"')}</span>Decline</button><button class="cb acc" data-a="call-acc"><span>${ICON_SM.phone}</span>Accept</button></div></div>`, light:false, key:'ring' };
+  if(s.phase === 'code') return { html: keypadHTML('Teacher code', 'Teacher: listen to the call. Then type the code.', ui.code || '', false), light:false, key:'code' };
+  const n = s.ticks.filter(Boolean).length;
+  const cards = a.items.map((it, k) => `<button class="pcard ${s.ticks[k] ? 'on' : ''}" data-a="tick" data-v="${k}" aria-pressed="${s.ticks[k]}"><span class="tick">${s.ticks[k] ? ICON_SM.check : ''}</span><span><span class="who ${it.who === 'Sari' ? 's' : ''}">${k + 1}. ${esc(it.who)}</span><span class="say" style="display:block">${esc(it.say)}</span><span class="use">Use: ${esc(it.use)}</span></span></button>`).join('');
+  const sec = Math.max(0, Math.floor((Date.now() - (s.t0 || Date.now())) / 1000));
+  return { html: `<div class="page incall"><div class="ctop"><b>${esc(a.caller)}</b><span id="ctimer">${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}</span></div>
+   <div class="body"><div class="roles">${a.roles.map(r => `<p><b>${esc(r[0])}:</b> ${esc(r[1])}</p>`).join('')}<p style="color:#555">Tick each card when you say it.</p></div>${cards}</div>
+   <div class="foot"><div class="score" style="text-align:center;font-size:.85rem;color:#555">${n} of ${a.items.length} ticked</div>
+   <button class="nextbtn endcall" data-a="call-end" ${n < a.items.length ? 'disabled style="opacity:.45"' : ''}>End call and ask your teacher</button>
+   <button class="bigbtn grey" data-a="home" style="margin-top:8px">Pause and go Home</button></div></div>`, key:'incall' };
+};
+
+RENDER.match = (a, s) => {
+  if(s.r == null){ s.r = 0; s.matched = []; s.sel = null; }
+  const R = a.rounds[s.r];
+  const pairOf = l => R.pairs.find(p => p[0] === l)[1];
+  const doneRight = s.matched.map(pairOf);
+  const L = R.left.map((w, k) => `<button class="mt au ${s.matched.includes(w) ? 'done' : ''} ${s.sel === k ? 'sel' : ''} ${ui.badL === k ? 'bad' : ''}" data-a="m-l" data-v="${k}" ${s.matched.includes(w) ? 'disabled' : ''}>${esc(w)}</button>`).join('');
+  const Rr = R.right.map((w, k) => `<button class="mt ${doneRight.includes(w) ? 'done' : ''} ${ui.badR === k ? 'bad' : ''}" data-a="m-r" data-v="${k}" ${doneRight.includes(w) ? 'disabled' : ''}>${esc(w)}</button>`).join('');
+  const roundDone = s.matched.length === R.pairs.length;
+  return { html: `<div class="page">${navHTML(a, 'Translate', `Round ${s.r + 1} of ${a.rounds.length}`)}
+   <div class="body">${howHTML(a)}<div class="mgrid"><div class="mcol"><h5>Aussie</h5>${L}</div><div class="mcol"><h5>Plain English</h5>${Rr}</div></div></div>
+   ${roundDone ? `<div class="foot"><div class="fb ok"><b>✅ Round ${s.r + 1} done!</b>All six pairs match.</div><button class="nextbtn" data-a="m-round">${s.r + 1 < a.rounds.length ? 'Next round' : 'Finish'} ›</button></div>` : ''}</div>`, key: 'm' + s.r };
+};
+
+RENDER.photos = (a, s) => {
+  if(!s.dn) s.dn = [];
+  if(s.open == null){
+    const th = a.items.map((it, k) => `<button class="thumb" style="background:linear-gradient(135deg,${it.bg[0]},${it.bg[1]})" data-a="ph-open" data-v="${k}" aria-label="Photo ${k + 1}${s.dn.includes(k) ? ', done' : ''}"><span class="scene">${it.pic.slice(0, 3).join('')}</span>${s.dn.includes(k) ? `<span class="tb">${ICON_SM.checkG}</span>` : ''}</button>`).join('');
+    return { html: `<div class="page" style="background:#fff">${navHTML(a, 'Recents', s.dn.length + ' of ' + a.items.length + ' captions')}
+     <div class="body">${howHTML(a)}<div class="pgrid">${th}</div></div></div>`, key: 'pg' };
+  }
+  const it = a.items[s.open], done = s.dn.includes(s.open) && !s.fb;
+  const opts = (done || s.solved) ? '' : it.opts.map((o, k) => `<button class="opt ${s.wr.includes(k) ? 'wrong' : ''}" data-a="ph-ans" data-v="${k}" ${s.wr.includes(k) ? 'disabled' : ''}>${esc(o)}</button>`).join('');
+  return { html: `<div class="page viewer"><div class="vtop"><button class="back" style="display:flex;align-items:center;gap:2px;min-height:44px" data-a="ph-close">${ICON_SM.back} All photos</button><div class="pm"><b>${esc(it.place)}</b><br>${esc(it.time)}</div><span class="pill" style="background:#2c2c2e;color:#ddd">${s.dn.length}/${a.count}</span></div>
+   <div class="body"><div class="bigpic" style="background:linear-gradient(135deg,${it.bg[0]},${it.bg[1]})"><span class="scene">${it.pic.join('')}</span></div>
+   <div class="palt">📷 ${esc(it.alt)}</div>${done ? `<div class="capdone">✅ Caption: <b>${esc(it.opts[it.ans])}</b></div>` : ''}</div>
+   ${done ? '' : `<div class="foot">${s.solved ? '' : '<h4>Choose Sari\'s caption</h4>'}${opts}${fbHTML(s, 'Back to photos')}</div>`}</div>`, light:false, key: 'pv' + s.open };
+};
+
+RENDER.react = (a, s) => {
+  const col = n => ({Harry:'', Anya:'c1', Rafi:'c2', Daniel:'c3', Sari:''})[n];
+  let t = '';
+  const shown = Math.min(s.i, a.items.length - 1);
+  for(let k = 0; k <= shown; k++){
+    const it = a.items[k], doneK = k < s.i || (k === s.i && s.solved);
+    t += `<div class="cm ${it.from === 'Sari' ? 'mine' : ''} ${k === s.i && !s.solved ? 'cur js-focus' : ''} ${k === s.i && s.solved ? 'js-focus' : ''}">${it.from === 'Sari' ? '' : `<span class="cf ${col(it.from)}">${esc(it.from)}</span>`}${esc(it.text)}<span class="ct">${7 + Math.floor(k / 3)}:${String(10 + k * 4).padStart(2,'0')}</span>${doneK ? `<span class="rx" aria-label="${a.reactions[it.ans][1]}">${a.reactions[it.ans][0]}</span>` : ''}</div>`;
+  }
+  const bar = s.solved ? '' : `<h4>What is ${esc(a.items[s.i].from === 'Sari' ? 'Sari' : a.items[s.i].from)} doing?</h4><div class="rbar">${a.reactions.map((r, k) => `<button class="rb ${s.wr.includes(k) ? 'wrong' : ''}" data-a="re" data-v="${k}" ${s.wr.includes(k) ? 'disabled' : ''}><em>${r[0]}</em>${esc(r[1])}</button>`).join('')}</div>`;
+  return { html: `<div class="page crew"><div class="chathead"><button class="back" style="display:flex;align-items:center;gap:2px;min-height:44px" data-a="home">${ICON_SM.back}</button><div class="av">☕</div><div class="gi"><b>${esc(a.group)}</b><span>${esc(a.members)}</span></div><span class="prog pill">${s.i}/${a.count}</span></div>
+   <div class="body" style="padding-bottom:0"><div class="crewbg">${howHTML(a).replace('class="how"','class="how" style="margin:0 0 6px"')}${t}<div style="height:12px"></div></div></div>
+   <div class="foot">${bar}${fbHTML(s)}</div></div>`, key: 'cr' };
+};
+
+RENDER.mail = (a, s) => {
+  if(!s.open){
+    const rows = a.inbox.map((m, k) => `<button class="mrow" data-a="mail-open" data-v="${k}"><span class="ud ${k === 0 && !s.i ? 'on' : ''}"></span><span style="flex:1;min-width:0"><span class="mf">${esc(m[0])}<span>${k === 0 ? '9:41 am' : k === 1 ? 'Yesterday' : 'Tuesday'}</span></span><span class="ms" style="display:block">${esc(m[1])}</span><span class="mp" style="display:block">${esc(m[2])}</span></span></button>`).join('');
+    return { html: `<div class="page" style="background:#fff">${navHTML(a, 'Inbox')}<div class="body">${howHTML(a)}<div class="inbox">${rows}</div></div></div>`, key: 'in' };
+  }
+  if(s.open === 'other'){
+    const m = a.inbox[s.other];
+    return { html: `<div class="page" style="background:#fff"><div class="nav"><button class="back" data-a="mail-back">${ICON_SM.back} Inbox</button><div class="title">${esc(m[0])}</div><span></span></div><div class="body" style="padding:16px"><h3 style="margin-top:0">${esc(m[1])}</h3><p>${esc(m[2])}</p><p style="color:#555">This email is not part of the task. Go back and open Harry's email.</p><button class="bigbtn" data-a="mail-back">Back to Inbox</button></div></div>`, key: 'mo' };
+  }
+  const e = a.email, it = a.items[s.i];
+  const btn = (v, l) => `<button class="${s.wr.includes(v) ? 'wrong' : ''}" data-a="mail-ans" data-v="${v}" ${s.wr.includes(v) || s.solved ? 'disabled' : ''}>${l}</button>`;
+  return { html: `<div class="page"><div class="nav"><button class="back" data-a="mail-back">${ICON_SM.back} Inbox</button><div class="title">Mail</div><span class="prog">${s.i}/${a.count}</span></div>
+   <div class="split"><div class="top"><h3>${esc(e.subject)}</h3><div class="meta"><b>${esc(e.from)}</b> to ${esc(e.to)}</div>${e.body.map(p => `<p>${esc(p)}</p>`).join('')}</div>
+   <div class="foot"><h4>Sentence ${s.i + 1} of ${a.count}</h4><div class="stmt">${esc(it.s)}</div>
+   <div class="tfn">${btn('T', 'True')}${btn('F', 'False')}${btn('N', 'Not in the email')}</div>${fbHTML(s)}</div></div></div>`, key: 'mail' };
+};
+
+RENDER.swipe = (a, s) => {
+  const it = a.items[s.i], nx = a.items[s.i + 1];
+  const w = s.wr;
+  return { html: `<div class="page payday">${navHTML(a, 'Payday')}
+   <div class="body">${howHTML(a)}
+    <div class="stack">${nx ? `<div class="pc behind" aria-hidden="true"></div>` : ''}<div class="pc" id="pc"><span class="stampx l">RED FLAG</span><span class="stampx r">ALL GOOD</span><div class="pcn">Card ${s.i + 1} of ${a.count}</div>${esc(it.s)}</div></div>
+    ${s.solved ? '' : `<div class="swbtns"><button class="r ${w.includes('red') ? 'wrong' : ''}" data-a="sw" data-v="red" ${w.includes('red') ? 'disabled' : ''}>🚩 Red flag</button><button class="g ${w.includes('good') ? 'wrong' : ''}" data-a="sw" data-v="good" ${w.includes('good') ? 'disabled' : ''}>✓ All good</button></div>`}
+    <div class="fbwrap js-focus">${fbHTML(s)}</div>
+   </div></div>`, light:false, key: 'pd' };
+};
+
+RENDER.picker = (a, s) => {
+  const rows = a.items.map((it, k) => {
+    const done = k < s.i || (k === s.i && s.solved), cur = k === s.i;
+    const lbl = esc(it.s).replace('___', done ? `<b>${esc(it.opts[it.ans])}</b>` : '<b>_____</b>');
+    const [h, m] = it.time.split(':');
+    return `<button class="alarm ${done ? '' : 'off'} ${cur && !s.solved ? 'cur js-focus' : ''}" data-a="${cur && !s.solved ? 'pk-open' : 'noop'}"><span><span class="at">${h}:${m}<small> ${+h < 5 || +h === 9 ? 'pm' : 'am'}</small></span><span class="al" style="display:block">${lbl}</span></span>${cur && !s.solved ? '<span class="tap">Tap</span>' : `<span class="sw ${done ? 'on' : ''}"></span>`}</button>`;
+  }).join('');
+  const it = a.items[s.i];
+  let foot = '';
+  if(s.solved) foot = `<div class="foot" style="background:#fff;color:#111">${fbHTML(s)}</div>`;
+  else if(s.pk) foot = `<div class="foot" style="background:#fff;color:#111"><h4>Choose the word</h4><div class="psent">${esc(it.s).replace('___', '<b>' + (s.sel != null ? esc(it.opts[s.sel]) : '_____') + '</b>')}</div>
+    <div class="wheelwrap"><div class="wheel" role="listbox">${it.opts.map((o, k) => `<button role="option" aria-selected="${s.sel === k}" class="${s.sel === k ? 'sel' : ''} ${s.wr.includes(k) ? 'wrong' : ''}" data-a="pk-sel" data-v="${k}" ${s.wr.includes(k) ? 'disabled' : ''}>${esc(o)}</button>`).join('')}</div></div>
+    ${fbHTML(s)}<div class="row2"><button class="bigbtn grey" data-a="pk-close">Cancel</button><button class="bigbtn" style="background:#c25e00" data-a="pk-set" ${s.sel == null ? 'disabled' : ''}>Set</button></div></div>`;
+  return { html: `<div class="page clockp">${navHTML(a, 'Alarms')}<div class="body">${howHTML(a)}${rows}</div>${foot}</div>`, light:false, key: 'ck' };
+};
+
+RENDER.build = (a, s) => {
+  if(!s.pl) s.pl = [];
+  const it = a.items[s.i];
+  const list = a.items.map((x, k) => k < s.i ? `<div class="ritem done"><span class="rc"></span><span>${esc(x.s)}</span></div>` : '').join('');
+  const placed = s.pl.map((t, pos) => `<button class="tile ${s.badpos && s.badpos.includes(pos) ? 'badpos' : ''}" data-a="b-back" data-v="${pos}">${esc(it.tiles[t])}</button>`).join('');
+  const bank = it.tiles.map((w, k) => s.pl.includes(k) ? '' : `<button class="tile" data-a="b-tile" data-v="${k}">${esc(w)}</button>`).join('');
+  const all = s.pl.length === it.tiles.length;
+  return { html: `<div class="page">${navHTML(a, 'Reminders')}
+   <div class="body"><div class="rem"><h2>Today</h2>${howHTML(a)}${list}<div class="ritem cur js-focus"><span class="rc"></span><span>${s.solved ? esc(it.s) : `Reminder ${s.i + 1} of ${a.count}: build it below.`}</span></div></div></div>
+   <div class="foot">${s.solved ? '' : `<h4>Your reminder</h4><div class="line" aria-label="Your sentence">${placed || '<span style="color:#888;font-size:.85rem;padding:8px">Tap the words below.</span>'}</div><div class="bank">${bank}</div>
+   <div class="row2"><button class="bigbtn grey" data-a="b-clear">Clear</button><button class="bigbtn" data-a="b-check" ${all ? '' : 'disabled'}>Check</button></div>`}${fbHTML(s)}</div></div>`, key: 'rm' };
+};
+
+RENDER.letters = (a, s) => {
+  if(s.g == null) s.g = '';
+  const it = a.items[s.i], W = it.w;
+  const misses = [...s.g].filter(c => !W.includes(c)).length;
+  const won = [...W].every(c => s.g.includes(c));
+  const lost = misses >= 6;
+  const slots = [...W].map(c => `<i class="${lost && !s.g.includes(c) ? 'miss' : ''}">${s.g.includes(c) || lost ? c : ''}</i>`).join('');
+  const rows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+  const kb = (won || lost) ? '' : `<div class="kb">${rows.map(r => `<div class="kr">${[...r].map(c => `<button class="${s.g.includes(c) ? (W.includes(c) ? 'hit' : 'miss') : ''}" data-a="lt" data-v="${c}" ${s.g.includes(c) ? 'disabled' : ''} aria-label="${c}">${c}</button>`).join('')}</div>`).join('')}</div>`;
+  return { html: `<div class="page wordup">${navHTML(a, 'Word Up')}
+   <div class="body">${howHTML(a).replace('class="how"','class="how" style="background:rgba(255,255,255,.92)"')}
+   <div class="wcard js-focus"><div class="wclue">${esc(it.s).replace('___', '<span style="color:#e8463f">____</span>')}</div>
+   <div class="slots" aria-label="${W.length} letters">${slots}</div>
+   <div class="hearts" aria-label="${6 - misses} tries left">${'❤️'.repeat(6 - misses)}${'🤍'.repeat(misses)}</div></div>
+   ${kb}<div style="margin:0 14px">${fbHTML(s)}</div></div></div>`, light:false, key: 'wu' };
+};
+
+RENDER.roster = (a, s) => {
+  if(!s.phase) s.phase = 'role';
+  if(s.phase === 'code') return { html: keypadHTML('Teacher code', 'Teacher: check the swap. Then type the code.', ui.code || '', false), light:false, key:'rcode' };
+  if(s.phase === 'role') return { html: `<div class="page rost">${navHTML(a, 'Roster', 'Shift swap', '<span class="prog">Pair task</span>')}
+    <div class="body">${howHTML(a)}
+    <button class="rolebtn" data-a="ro-role" data-v="A"><b>I am Student A: Sari</b><span>Sari needs Thursday off.</span></button>
+    <button class="rolebtn" data-a="ro-role" data-v="B"><b>I am Student B: Anya</b><span>Anya needs Wednesday off.</span></button>
+    <button class="rolebtn" data-a="ro-role" data-v="C"><b>Three of us? I am Harry</b><span>Harry is the manager.</span></button>
+    <p style="margin:14px 16px;font-size:.85rem;color:#444">Do not show your screen to your partner. Talk!</p></div></div>`, key:'role' };
+  const c = a.cards[s.role];
+  const hearList = s.role === 'A' ? a.cards.B.say : s.role === 'B' ? a.cards.A.say : a.cards.A.say.concat(a.cards.B.say);
+  if(!s.said) s.said = []; if(!s.heard) s.heard = [];
+  const chk = (list, key) => list.map((e, k) => { const on = s[key].includes(k); return `<button class="pcard ${on ? 'on' : ''}" data-a="ro-tick" data-v="${key}:${k}" aria-pressed="${on}"><span class="tick">${on ? ICON_SM.check : ''}</span><span class="say" style="margin:5px 0 0;font-weight:700">${esc(e)}</span></button>`; }).join('');
+  const ready = s.said.length === c.say.length && s.heard.length >= 3;
+  return { html: `<div class="page rost">${navHTML(a, 'Roster', c.who, `<span class="prog">${s.said.length + Math.min(s.heard.length, 10 - c.say.length)}/10</span>`)}
+   <div class="body"><div class="rcard"><h4>${esc(c.who)}</h4><ul>${c.lines.map(l => `<li>${esc(l)}</li>`).join('')}</ul></div>
+   <div class="sect">Say these. Tick when you say them.</div>${chk(c.say, 'said')}
+   <div class="sect">Listen. Tick when you hear them.</div>${chk(hearList, 'heard')}
+   <button class="bigbtn grey" style="width:calc(100% - 28px);margin:16px 14px 0" data-a="ro-change">Change my role</button></div>
+   <div class="foot"><button class="nextbtn" data-a="ro-done" ${ready ? '' : 'disabled style="opacity:.45"'}>We agreed a swap. Ask the teacher</button>${ready ? '' : '<div style="text-align:center;font-size:.8rem;color:#555;margin-top:6px">Tick all your "Say" words and at least 3 "Listen" words.</div>'}</div></div>`, key:'rcard' };
+};
+
+/* settings */
+function settingsHTML(){
+  const n = doneCount();
+  let first = 0, total = 0;
+  APPS.forEach(a => { if(a.code) return; total += a.count; const s = S.apps[a.id]; if(s) first += (S.done[a.id] ? (s.best != null ? s.best : s.first) : s.first); });
+  return { html: `<div class="page set"><div class="nav"><button class="back" data-a="home">${ICON_SM.back} Home</button><div class="title">Settings</div><span></span></div>
+  <div class="body">
+   <div class="sgroup"><div class="srow prof"><span class="av">SW</span><span><b style="font-size:1.05rem">${esc(META.owner)}</b><br><span style="font-size:.8rem;color:#555">This is not your phone 😉</span></span></div></div>
+   ${STORE_OK ? '' : '<div class="warnbox">⚠️ This browser cannot save your progress. If you close the page, you start again. Try a normal (not private) browser window.</div>'}
+   <div class="shead">Text size</div>
+   <div class="sgroup" style="padding-top:12px"><div class="seg" role="radiogroup" aria-label="Text size">${TEXT_SIZES.map((px, k) => `<button role="radio" aria-checked="${S.ts === k}" class="${S.ts === k ? 'on' : ''}" data-a="ts" data-v="${k}" style="font-size:${[16, 20, 25][k]}px">A</button>`).join('')}</div>
+   <div class="preview">Saturdays at the café are feral!</div></div>
+   <div class="shead">Screen</div>
+   <div class="sgroup"><button class="srow" data-a="fs"><span class="sic" style="background:#0a84ff">${fsIcon(isFS())}</span>Full screen<span class="sv">${isFS() ? 'On' : (canFS() ? 'Off' : 'How to')}</span></button></div>
+   <div class="shead">Game</div>
+   <div class="sgroup">
+    <div class="srow"><span class="sic" style="background:#34c759">✓</span>Apps done<span class="sv">${n} of ${APPS.length}</span></div>
+    <div class="srow"><span class="sic" style="background:#ff9f0a">★</span>Right the first time<span class="sv">${first} of ${total}</span></div>
+    <div class="srow"><span class="sic" style="background:#5e5ce6">💾</span>Progress<span class="sv">${STORE_OK ? 'Saved on this phone' : 'Not saved'}</span></div>
+   </div>
+   <div class="sgroup" style="margin-top:14px"><button class="srow danger" data-a="reset">${ui.setReset ? 'Tap again to delete all progress' : 'Start the game again'}</button></div>
+   <div class="shead">About</div>
+   <div class="sgroup"><div class="srow" style="font-size:.85rem;line-height:1.35">${esc(META.title)}. A revision game for ${esc(META.lesson)}.</div></div>
+  </div></div>`, key:'set' };
+}
+
+/* ending */
+function endingCallHTML(){
+  return `<div class="page call"><div class="cav">B</div><div class="cn">Budi ❤️</div><div class="cs">mobile · calling…</div>
+   <div class="how" style="background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.25);margin:24px 20px 0">Budi is calling Sari's phone. Answer it!</div>
+   <div class="cbtns"><span></span><button class="cb acc" data-a="end-acc"><span>${ICON_SM.phone}</span>Accept</button></div></div>`;
+}
+function finalHTML(){
+  let first = 0, total = 0;
+  APPS.forEach(a => { if(a.code) return; total += a.count; const s = S.apps[a.id]; if(s) first += (s.best != null ? s.best : s.first); });
+  const n = Math.max(1, Math.round(5 * first / total));
+  setTimeout(confetti, 60);
+  return `<div class="page final"><div class="body" style="padding-bottom:30px">
+   <h2>🎉 You did it!</h2>
+   <div class="msg"><b>Budi:</b> Hello? Thank you so much! This is my wife Sari's phone. She's at work at Beamish Lane Café on Beamish Street. Can you leave it with her there? She finishes at 1.</div>
+   <div class="msg"><b>Sari:</b> My phone! Far out, I was so worried. Thank you! Happy days! 😄</div>
+   <div class="stars" style="color:#ffd60a">${'★'.repeat(n)}${'☆'.repeat(5 - n)}</div>
+   <div style="font-size:.95rem">All ${APPS.length} apps done.<br>Right the first time: <b>${first} of ${total}</b></div>
+   <button class="bigbtn" style="background:#fff;color:#111" data-a="home">Back to Home</button>
+   <button class="bigbtn" style="background:rgba(255,255,255,.2)" data-a="open" data-v="settings">Play again (Settings)</button>
+  </div></div>`;
+}
+function confetti(){
+  const v = document.querySelector('.final'); if(!v || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const c = document.createElement('div'); c.className = 'confetti';
+  const cols = ['#ffd60a','#30d158','#0a84ff','#ff375f','#bf5af2','#ff9f0a'];
+  for(let k = 0; k < 60; k++){ const i = document.createElement('i'); i.style.left = Math.random()*100 + '%'; i.style.background = cols[k % 6]; i.style.animationDelay = (Math.random()*1.2) + 's'; c.appendChild(i); }
+  v.appendChild(c); setTimeout(() => c.remove(), 5000);
+}
+
+/* ---------------- actions ---------------- */
+function clearPopups(){ const n = $('#notif'); if(n) n.classList.remove('show'); const t = document.querySelector('.toast'); if(t) t.remove(); }
+function openApp(id){
+  closeOver(); clearPopups();
+  if(id === 'settings'){ ui.screen = 'app'; ui.app = 'settings'; ui.setReset = false; render(); return; }
+  const a = BYID[id]; if(!a) return;
+  if(!isOpen(id)){ const b = blocker(id); alertBox(`${esc(a.name)} is locked`, `Finish <b>${esc(b.name)}</b> first.`); return; }
+  ui.screen = 'app'; ui.app = id; ui.welcome = false;
+  const s = st(a);
+  if(a.type === 'photos') s.open = null;
+  if(a.type === 'voicemail') s.open = null;
+  if(a.type === 'mail' && s.open === 'other') s.open = false;
+  if(a.type === 'call' && !S.done[id] && s.phase === 'code') ui.code = '';
+  render();
+}
+function goHome(){
+  closeOver(); clearPopups();
+  if(ui.screen === 'lock' || ui.screen === 'pass') return;
+  ui.screen = 'home'; ui.app = null; ui.code = '';
+  if(doneCount() === APPS.length && !S.finished){ ui.screen = 'ending-call'; }
+  render();
+}
+function kpPress(d){
+  if(ui.screen === 'pass'){
+    if(ui.pass.length >= 4) return;
+    ui.pass += d; render();
+    if(ui.pass.length === 4) setTimeout(() => {
+      if(ui.pass === META.passcode){ S.unlocked = true; save(); ui.pass = ''; ui.screen = 'home'; render(); if(!S.announced.start){ S.announced.start = true; notify('messages', 'Budi', 'Did you find Sari\'s phone? Have a look around 😊'); save(); } }
+      else { const dEl = $('#dots'); if(dEl) dEl.classList.add('shake'); if(navigator.vibrate) try{navigator.vibrate(200)}catch(e){} setTimeout(() => { ui.pass = ''; render(); }, 450); }
+    }, 180);
+    return;
+  }
+  const a = BYID[ui.app]; if(!a) return;
+  ui.code = (ui.code || '');
+  if(ui.code.length >= 4) return;
+  ui.code += d; render();
+  if(ui.code.length === 4) setTimeout(() => {
+    if(ui.code === a.code){ ui.code = ''; const s = st(a); s.i = a.count; s.first = a.count; s.phase = 'done'; completeApp(a); }
+    else { const dEl = $('#dots'); if(dEl) dEl.classList.add('shake'); setTimeout(() => { ui.code = ''; render(); }, 450); }
+  }, 180);
+}
+
+function act(t, v, el){
+  const a = BYID[ui.app]; const s = a ? st(a) : null;
+  switch(t){
+    case 'noop': return;
+    case 'close': closeOver(); return;
+    case 'fs': toggleFS(); return;
+    case 'home': goHome(); return;
+    case 'open': openApp(v); return;
+    case 'wb-close': ui.welcome = false; render(); return;
+    case 'intro-start': S.introSeen = true; save(); closeOver(); if(IS_ANDROID && canFS() && !isFS()) enterFS(); return;
+    case 'lock-open': if(!S.introSeen){ showIntro(); return; } if(S.unlocked){ ui.screen = 'home'; ui.welcome = hadProgress && doneCount() < APPS.length; render(); } else { ui.screen = 'pass'; ui.pass = ''; render(); } return;
+    case 'pass-cancel': ui.screen = 'lock'; ui.pass = ''; render(); return;
+    case 'hint': alertBox('Passcode hint', 'Think about Budi\'s first week in <b>First shifts</b>.<br><br>First: the hours Budi really worked.<br>Then: the hours on his payslip.<br><br>Put the two numbers together.'); return;
+    case 'kp': kpPress(v); return;
+    case 'kp-del': if(ui.screen === 'pass') ui.pass = ui.pass.slice(0, -1); else ui.code = (ui.code || '').slice(0, -1); render(); return;
+    case 'kp-cancel': if(s){ s.phase = a.type === 'call' ? 'call' : 'card'; ui.code = ''; save(); render(); } return;
+    case 'ts': S.ts = +v; save(); render(); return;
+    case 'reset': if(!ui.setReset){ ui.setReset = true; render(); return; } try{ localStorage.removeItem(META.storageKey); }catch(e){} S = fresh(); S.introSeen = true; save(); ui.setReset = false; ui.screen = 'lock'; ui.app = null; render(); toast('The game is ready to start again.'); return;
+    case 'replay': { const keep = s.best; S.apps[a.id] = {i:0, first:0, miss:0, fb:null, wr:[], best:keep, replay:true}; save(); render(); return; }
+    case 'next': return onNext(a, s);
+
+    case 'chat': { const k = +v, it = a.items[s.i]; if(k !== it.ans) s.wr.push(k); judge(a, k === it.ans, it.opts[it.ans], it.why, 'That reply does not fit. Look at the words in the reply.'); return; }
+    case 'tw': { const k = +v, it = a.items[s.i]; if(k !== it.idx) s.wr.push(k); judge(a, k === it.idx, `"${it.wrong}" should be "${it.right}"`, `The expression is: ${it.why}.`, 'That word is fine. Find a different word.'); return; }
+    case 'cal-day': s.day = +v; save(); render(); return;
+    case 'cal-ans': { const it = a.items[s.i], D = DAYS[a.week[it.ans].d]; if(s.day !== it.ans) s.wr.push(s.day); judge(a, s.day === it.ans, D, 'Read the events on ' + D + '.', 'Not that day. Read the events on the other days.'); return; }
+    case 'vm-open': s.open = +v; save(); render({focus:true}); return;
+    case 'vm-list': s.open = null; if(s.solved) { /* keep */ } save(); render(); return;
+    case 'vm-play': { const m = a.msgs[s.open]; if(!('speechSynthesis' in window)){ toast('Sound is not available here. Read the transcript.'); return; } const done = s.open < s.m; if(!done){ toast('Fill the gaps first. Then you can listen.'); return; } try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(m.parts.map(p => p.t || m.gaps[p.gap]).join('')); u.lang = 'en-AU'; u.rate = .95; speechSynthesis.speak(u); }catch(e){ toast('Sound is not available here.'); } return; }
+    case 'vm-chip': { const m = a.msgs[s.m], w = m.bank[+v], ok = w === m.gaps[s.g]; if(!ok) s.wr.push(+v); judge(a, ok, m.gaps[s.g], ok ? 'Good listening!' : `The gap needs "${m.gaps[s.g]}".`, 'That does not fit here. Read the words around the gap.'); return; }
+    case 'tick': s.ticks[+v] = !s.ticks[+v]; save(); render(); return;
+    case 'call-acc': s.phase = 'call'; s.t0 = s.t0 || Date.now(); save(); render(); return;
+    case 'call-dec': goHome(); notify('phone', 'Missed call', 'Wen called. Open Phone to call back.'); return;
+    case 'call-end': if(s.ticks.every(Boolean)){ s.phase = 'code'; ui.code = ''; save(); render(); } return;
+    case 'm-l': s.sel = +v; ui.badL = ui.badR = null; render(); return;
+    case 'm-r': {
+      if(s.sel == null){ toast('First tap an Aussie expression.'); return; }
+      const R = a.rounds[s.r], l = R.left[s.sel], ok = R.pairs.find(p => p[0] === l)[1] === R.right[+v];
+      if(ok){ s.matched.push(l); if(!s.pm) s.first++; s.pm = false; s.i++; s.sel = null; save(); render(); toast('✅ ' + l + ' = ' + R.right[+v]); }
+      else { s.pm = true; ui.badL = s.sel; ui.badR = +v; save(); render(); toast('Not a match. Try again.'); setTimeout(() => { ui.badL = ui.badR = null; }, 500); }
+      return; }
+    case 'm-round': if(s.r + 1 < a.rounds.length){ s.r++; s.matched = []; s.sel = null; save(); render(); } else completeApp(a); return;
+    case 'ph-open': { const k = +v; if(s.fb && !s.solved) resetItem(s); s.open = k; if(!s.dn.includes(k)) resetItem(s); render(); return; }
+    case 'ph-close': if(s.solved) return onNext(a, s); s.open = null; resetItem(s); render(); return;
+    case 'ph-ans': { const it = a.items[s.open], k = +v; if(k !== it.ans) s.wr.push(k); judge(a, k === it.ans, it.opts[it.ans], 'Look at the photo and the description.', 'That caption does not match the photo.'); return; }
+    case 're': { const it = a.items[s.i], k = +v; if(k !== it.ans) s.wr.push(k); judge(a, k === it.ans, a.reactions[it.ans][0] + ' ' + a.reactions[it.ans][1], 'Look at the expression in the message.', 'Read the message again. What does the expression tell you?'); return; }
+    case 'mail-open': if(+v === 0){ s.open = 'harry'; } else { s.open = 'other'; s.other = +v; } save(); render(); return;
+    case 'mail-back': s.open = false; save(); render(); return;
+    case 'mail-ans': { const it = a.items[s.i]; if(v !== it.ans) s.wr.push(v); const L = {T:'True', F:'False', N:'Not in the email'}; judge(a, v === it.ans, L[it.ans], 'Find the part of the email about this.', 'Read that part of the email again.'); return; }
+    case 'sw': { const it = a.items[s.i]; if(v !== it.ans) s.wr.push(v); judge(a, v === it.ans, it.ans === 'red' ? '🚩 Red flag' : '✓ All good', it.why, 'Think again. Is this fair for a worker?'); return; }
+    case 'pk-open': s.pk = true; s.sel = null; save(); render(); return;
+    case 'pk-close': s.pk = false; s.sel = null; if(s.fb && s.fb.k === 'no') s.fb = null; save(); render(); return;
+    case 'pk-sel': s.sel = +v; if(s.fb && s.fb.k === 'no') s.fb = null; render(); return;
+    case 'pk-set': { const it = a.items[s.i]; if(s.sel == null) return; if(s.sel !== it.ans) s.wr.push(s.sel); const ok = s.sel === it.ans; judge(a, ok, it.opts[it.ans], ok ? 'Good. That is the right form.' : 'Look at the time words in the sentence.', 'Look at the time words: yesterday, tomorrow, right now, already.'); if(!ok) s.sel = null; return; }
+    case 'b-tile': s.pl.push(+v); s.badpos = null; if(s.fb && s.fb.k === 'no') s.fb = null; render(); return;
+    case 'b-back': s.pl.splice(+v, 1); s.badpos = null; if(s.fb && s.fb.k === 'no') s.fb = null; render(); return;
+    case 'b-clear': s.pl = []; s.badpos = null; if(s.fb && s.fb.k === 'no') s.fb = null; render(); return;
+    case 'b-check': { const it = a.items[s.i]; const words = s.pl.map(t => it.tiles[t]); const ok = words.join(' ') === it.s; if(!ok) s.badpos = words.map((w, k) => w !== it.words[k] ? k : -1).filter(k => k >= 0); judge(a, ok, it.s, '', 'The red words are in the wrong place.'); return; }
+    case 'lt': {
+      const it = a.items[s.i]; if(s.g.includes(v)) return; s.g += v;
+      const W = it.w, won = [...W].every(c => s.g.includes(c)), misses = [...s.g].filter(c => !W.includes(c)).length;
+      if(won){ s.fb = {k:'ok', why:'The word is ' + W + '.'}; s.solved = true; s.first++; save(); render(); }
+      else if(misses >= 6){ s.fb = {k:'rev', ans:W, why:'Read the sentence again with the word.'}; s.solved = true; save(); render(); }
+      else { save(); render(); }
+      return; }
+    case 'ro-role': s.role = v; s.phase = 'card'; s.said = []; s.heard = []; save(); render(); return;
+    case 'ro-change': s.phase = 'role'; save(); render(); return;
+    case 'ro-tick': { const [k, n] = v.split(':'); const arr = s[k]; const i = arr.indexOf(+n); if(i >= 0) arr.splice(i, 1); else arr.push(+n); s.i = Math.min(10, s.said.length + Math.min(s.heard.length, 10 - a.cards[s.role].say.length)); save(); render(); return; }
+    case 'ro-done': s.phase = 'code'; ui.code = ''; save(); render(); return;
+    case 'end-acc': S.finished = true; save(); ui.screen = 'final'; render(); return;
+  }
+}
+function onNext(a, s){
+  if(a.type === 'voicemail'){
+    s.i++; s.g++; const m = a.msgs[s.m]; resetItem(s);
+    if(s.g >= m.gaps.length){ s.m++; s.g = 0; if(s.m >= a.msgs.length){ completeApp(a); return; } s.open = null; save(); render(); toast('Message done. Open the next one.'); return; }
+    save(); render({focus:true}); return;
+  }
+  if(a.type === 'photos'){
+    if(!s.dn.includes(s.open)) s.dn.push(s.open);
+    s.i = s.dn.length; resetItem(s); s.open = null;
+    if(s.dn.length >= a.items.length){ completeApp(a); return; }
+    save(); render(); return;
+  }
+  if(a.type === 'picker'){ s.pk = false; s.sel = null; }
+  if(a.type === 'build'){ s.pl = []; s.badpos = null; }
+  if(a.type === 'letters'){ s.g = ''; }
+  if(a.type === 'calendar'){ s.day = 0; }
+  advance(a);
+}
+
+/* call timer */
+setInterval(() => { const el = document.getElementById('ctimer'); const a = BYID[ui.app]; if(!el || !a) return; const s = st(a); const sec = Math.floor((Date.now() - (s.t0 || Date.now())) / 1000); el.textContent = String(Math.floor(sec/60)).padStart(2,'0') + ':' + String(sec%60).padStart(2,'0'); }, 1000);
+
+/* swipe gesture on the Payday card */
+let drag = null;
+document.addEventListener('pointerdown', e => { const c = e.target.closest('#pc'); if(!c) return; const a = BYID[ui.app]; if(!a || st(a).solved) return; drag = {x:e.clientX, c}; c.setPointerCapture && c.setPointerCapture(e.pointerId); });
+document.addEventListener('pointermove', e => { if(!drag) return; const dx = e.clientX - drag.x; drag.dx = dx; drag.c.style.transform = `translateX(${dx}px) rotate(${dx/20}deg)`; drag.c.querySelector('.stampx.l').style.opacity = Math.min(1, Math.max(0, -dx/80)); drag.c.querySelector('.stampx.r').style.opacity = Math.min(1, Math.max(0, dx/80)); });
+document.addEventListener('pointerup', () => { if(!drag) return; const dx = drag.dx || 0, c = drag.c; drag = null; if(Math.abs(dx) > 90){ act('sw', dx < 0 ? 'red' : 'good'); } else { c.style.transform = ''; c.querySelectorAll('.stampx').forEach(x => x.style.opacity = 0); } });
+document.addEventListener('pointercancel', () => { if(drag){ drag.c.style.transform=''; drag = null; } });
+
+/* Stop double-tap zoom without losing fast taps: a second tap within 350 ms has its
+   default (zoom) cancelled, and the button under the finger is clicked by hand instead. */
+let tapT = 0, tapX = 0, tapY = 0, tapMoved = false;
+document.addEventListener('touchstart', e => { const t = e.touches[0]; tapX = t.clientX; tapY = t.clientY; tapMoved = e.touches.length > 1; }, {passive:true});
+document.addEventListener('touchmove', e => { const t = e.touches[0]; if(Math.abs(t.clientX - tapX) > 10 || Math.abs(t.clientY - tapY) > 10) tapMoved = true; }, {passive:true});
+document.addEventListener('touchend', e => {
+  if(tapMoved || e.touches.length){ tapT = 0; return; }
+  const now = Date.now();
+  if(now - tapT < 350){
+    e.preventDefault();
+    const b = e.target.closest && e.target.closest('[data-a]');
+    if(b && !b.disabled) b.click();
+    tapT = 0; return;
+  }
+  tapT = now;
+}, {passive:false});
+document.addEventListener('dblclick', e => e.preventDefault(), {passive:false});
+document.addEventListener('gesturestart', e => e.preventDefault(), {passive:false});   // iOS: block the zoom gesture inside the game
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-a]'); if(!t || t.disabled) return;
+  act(t.dataset.a, t.dataset.v, t);
+});
+document.addEventListener('keydown', e => {
+  if(ui.screen === 'pass' || (ui.screen === 'app' && ui.code !== undefined && document.getElementById('dots'))){
+    if(/^[0-9]$/.test(e.key)) kpPress(e.key);
+    if(e.key === 'Backspace') act('kp-del');
+  }
+});
+
+/* start */
+if(S.unlocked && S.introSeen){ ui.screen = 'lock'; }
+render();
+window.__phone = { S: () => S, ui, act, APPS };
+</script>
+</body>
+</html>
